@@ -1,0 +1,26 @@
+# Modern PyTorch for Python 3.9+ (Apple Silicon support available)
+torch==2.0.1
+
+# Use a recent pandas version
+pandas==2.0.3
+
+# Use a recent NumPy version
+numpy==1.24.3
+
+# A more recent tqdm
+tqdm==4.65.0
+
+# docopt is stable at 0.6.2, so that's fine to keep pinned if you wish
+docopt==0.6.2
+
+# Updated coloredlogs
+coloredlogs==15.0.1
+
+# JupyterLab has moved far beyond 1.0.1; version 4+ is recommended
+jupyterlab==4.0.5
+
+# Altair 4.2.2 is current
+altair==4.2.2
+
+# Seaborn 0.12.2 is current
+seaborn==0.12.2
