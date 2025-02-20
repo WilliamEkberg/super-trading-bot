@@ -57,7 +57,7 @@ class Agent:
             self.first_iter = False
             return 1
 
-        self.model.eval()
+        self.model.eval() #Evaluation mode
 
         state_tensor = torch.FloatTensor(state).to(self.device)
         if state_tensor.dim() == 1:
@@ -65,7 +65,7 @@ class Agent:
         with torch.no_grad():
             q_values = self.model(state_tensor)
         
-        self.model.train()
+        self.model.train() #Turn training mode back on
         return int(torch.argmax(q_values, dim=1).item())
 
     def remember(self, state, action, reward, next_state, done):
@@ -106,10 +106,10 @@ class Agent:
             else:
                 raise NotImplementedError("Unknown strategy: " + self.strategy)
             
-            # If done, no future reward is added
-            targets = rewards + (1 - dones) * self.gamma * max_next_q
+            
+            targets = rewards + (1 - dones) * self.gamma * max_next_q #If done, no future reward is added
         
-        # Compute the Huber loss (smooth L1 loss)
+        # Huber loss 
         loss = F.smooth_l1_loss(current_q, targets)
         
         # Backpropagation step
@@ -126,13 +126,11 @@ class Agent:
         return loss.item()
 
     def save(self, episode):
-        """Save the model parameters."""
         if self.model_name is None:
             raise ValueError("Model name not provided.")
         torch.save(self.model.state_dict(), f"models/{self.model_name}_{episode}.pth")
 
     def load(self):
-        """Load model parameters."""
         if self.model_name is None:
             raise ValueError("Model name not provided.")
         model = brain(self.state_size, self.action_size).to(self.device)
