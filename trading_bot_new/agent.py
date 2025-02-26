@@ -107,15 +107,13 @@ class Agent:
             
             targets = rewards + (1 - dones) * self.gamma * max_next_q #If done, no future reward is added
         
-        # Huber loss 
         loss = F.smooth_l1_loss(current_q, targets)
         
-        # Backpropagation step
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
         
-        # Decay exploration rate
+        #Decay exploration rate
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
         
