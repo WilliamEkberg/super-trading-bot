@@ -2,8 +2,8 @@ import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
-class Train():
-    def __init__(self, data, trader, batch_size=32, obs_window=10):
+class Trainer():
+    def __init__(self, dataloader_train, dataloader_val, trader, batch_size=32, obs_window=10):
         self.train_profit = 0
         self.batch_size = batch_size
         self.obs_window = obs_window

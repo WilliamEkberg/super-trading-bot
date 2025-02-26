@@ -23,17 +23,48 @@ Options:
   --debug                           Specifies whether to use verbose logs during eval operation.
 """
 
-import logging
 import coloredlogs
+import argparse
 from docopt import docopt
 from torch.utils.data import DataLoader
 from dataset.Dataset import TradingDataset
+from utils.utils import show_train_result, get_device, show_eval_result
 
 from agent import Agent
-from train import Train
+from train import Trainer
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Simple greeting script")
+
+    parser.add_argument("--data_dir", type=str)
+    parser.add_argument("--train_stock_name", type=str, default="../data/")
+    parser.add_argument("--train_stock_name", type=str)
+    parser.add_argument("--val_stock_name", type=str)
+    parser.add_argument("--strategy", type=str)
+    parser.add_argument("--window_size", type=int)
+    parser.add_argument("--batch_size", type=int)
+    parser.add_argument("--episodes", type=int)
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--pretrained", action="store_true")
+    parser.add_argument("--model_name", type=str)
+    parser.add_argument("--debug", type=bool, action="store_true")
 
 
-def main(train_stock, val_stock, window_size, batch_size, ep_count,
+    # train_stock = args["<train-stock>"]
+    # val_stock = args["<val-stock>"]
+    # strategy = args["--strategy"]
+    # window_size = int(args["--window-size"])
+    # batch_size = int(args["--batch-size"])
+    # ep_count = int(args["--episode-count"])
+    # model_name = args["--model-name"]
+    # pretrained = args["--pretrained"]
+    # debug = args["--debug"]
+
+    args = parser.parse_args()
+    return args
+
+
+def main(train_stock_name, val_stock_name, window_size, batch_size, ep_count,
          strategy="t-dqn", model_name="model_debug", pretrained=False,
          debug=False):
     """Trains the stock trading bot using Deep Q-Learning.
@@ -44,44 +75,32 @@ def main(train_stock, val_stock, window_size, batch_size, ep_count,
     agent = Agent(window_size, strategy=strategy, pretrained=pretrained,
                   model_name=model_name, device=get_device())
     
-    train_data = TradingDataset(train_stock)
-    val_data = get_stock_data(val_stock)
+    train_data = TradingDataset(train_stock_name)
+    val_data = TradingDataset(val_stock_name)
     initial_offset = val_data[1] - val_data[0]
 
 
 
-    dataloader = DataLoader(train_stock, batch_size=batch_size, shuffle=False)
-    trainer = Train(train_stock, agent,batch_size, window_size)
-    
-
-    trainer
+    dataloader_train = DataLoader(train_stock_name, batch_size=1, shuffle=False)
+    dataloader_val = DataLoader(train_stock_name, batch_size=1, shuffle=False)
+    trainer = Trainer(dataloader_train, dataloader_val, agent, batch_size, window_size)
 
     for episode in range(1, ep_count + 1):
-        train_result = go_to_gym(agent, episode, train_data,
+        train_result = trainer.go_to_gym(agent, episode, train_data,
                                    ep_count=ep_count,
                                    batch_size=batch_size,
                                    window_size=window_size)
-        val_result, _ = testing(agent, val_data, window_size, debug)
+        val_result, _ = trainer.testing(agent, val_data, window_size, debug)
         show_train_result(train_result, val_result, initial_offset)
 
 
 if __name__ == "__main__":
-    args = docopt(__doc__)
-
-    train_stock = args["<train-stock>"]
-    val_stock = args["<val-stock>"]
-    strategy = args["--strategy"]
-    window_size = int(args["--window-size"])
-    batch_size = int(args["--batch-size"])
-    ep_count = int(args["--episode-count"])
-    model_name = args["--model-name"]
-    pretrained = args["--pretrained"]
-    debug = args["--debug"]
+    args = get_args()
 
     coloredlogs.install(level="DEBUG")
     try:
-        main(train_stock, val_stock, window_size, batch_size,
-             ep_count, strategy=strategy, model_name=model_name, 
-             pretrained=pretrained, debug=debug)
+        main(args.train_stock_name, args.val_stock_name, args.window_size, args.batch_size,
+             args.episodes, strategy=args.strategy, model_name=args.model_name, 
+             pretrained=args.pretrained, debug=args.debug)
     except KeyboardInterrupt:
         print("Aborted!")
