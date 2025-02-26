@@ -11,6 +11,7 @@ class TradingDataset(Dataset):
         self.data_dir = os.path.join(data_dir,asset_name)
         self.asset_name = asset_name
         self.window_size = window_size
+        self.raw_data = self.get_data()
         self.x, self.y = self.pre_process_data()
         
         assert os.path.exists(self.data_dir), f"The path {self.data_dir} does not exist."
@@ -52,7 +53,7 @@ class TradingDataset(Dataset):
         return torch.tensor([res], dtype=torch.float)
     
     def pre_process_data(self):
-        financial_data = self.get_data()
+        financial_data = self.raw_data
         x = []
         y = []
         for idx in range(len(financial_data)-1):
@@ -71,7 +72,7 @@ class TradingDataset(Dataset):
         if idx == (self.__len__()-1):
             done = True
 
-        return self.x[idx], self.y[idx], done
+        return self.x[idx], self.y[idx], torch.tensor(self.raw_data[:,4][idx]), done
         
 
 if __name__ =="__main__":
