@@ -1,17 +1,13 @@
 import numpy as np
 from tqdm import tqdm
-
-from utils.utils import get_state
-
-
+from torch.utils.data import DataLoader
 
 class Train():
-    def __init__(self, data, traider, batch_size=32, obs_window=10):
+    def __init__(self, data, trader, batch_size=32, obs_window=10):
         self.train_profit = 0
-        self.len_data = len(data)-1
         self.batch_size = batch_size
         self.obs_window = obs_window
-        self.traider = traider
+        self.trader = trader
 
     
     def go_to_gym(self, number_of_episodes, dataset):
@@ -21,73 +17,67 @@ class Train():
             self.train(ep)
 
     def train(self, episode):
-        self.traider.inventory = []
+        self.trader.inventory = []
         loss_list = []
-
-        current_state = get_state(self.dataset, 0, self.obs_window+1) #the whole dataset????????
-
-        for i in tqdm(range(self.len_data), i+1, total=self.len_data, desc=f"Episode: {episode} out of {self.number_episodes}"):
+        dataset = self.dataset
+        dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
+        for (current_state, next_state, value, done) in dataloader:
             profit = 0
-            next_state = get_state(self.dataset, i+1, self.obs_window)
 
-            current_action = self.traider.act(current_state)
+            current_action = self.trader.act(current_state)
 
-            if current_action == 1:
-                self.traider.inventory.append(self.dataset[i])
+            if current_action == 1: #Buy
+                self.trader.inventory.append(value)
 
-            elif current_action == 2 and len(self.traider.inventory) >0:
-                bought_value = self.traider.inventory.pop(0)
-                current_value = self.dataset[i]
+            elif current_action == 2 and len(self.trader.inventory) >0: #Sell
+                bought_value = self.trader.inventory.pop(0)
+                current_value = value
                 profit = current_value - bought_value
                 self.train_profit += profit
 
-            bool_end = (i == self.len_data-1)
-            self.traider.remember(current_state, current_action, profit, next_state, bool_end)
 
-            if len(self.traider.memory) > self.batch_size:
-                replay_loss = self.traider.train_experience_replay(self.batch_size)
+            self.trader.remember(current_state, current_action, profit, next_state, done)
+
+            if len(self.trader.memory) > self.batch_size:
+                replay_loss = self.trader.train_experience_replay(self.batch_size)
                 if replay_loss != None:
                     loss_list.append(replay_loss)
 
             current_state = next_state
     
         if episode % 30 ==0:
-            self.traider.save(episode)
+            self.trader.save(episode)
         return profit, np.mean(loss_list)
     
     def testing(self, dataset):
-        self.dataset = dataset
         profit = 0
-        len_data = len(self.dataset)-1
 
-        self.traider.inventory = []
+        self.trader.inventory = []
         timeline = []
 
-        current_state = get_state(self.dataset, 0, self.obs_window+1)
-
-        for i in range(len_data):
+        dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
+        for (current_state, next_state, value, done) in dataloader:
             profit = 0
-            next_state = get_state(self.dataset, i+1, self.obs_window+1)
-            current_action = self.traider.act(current_state, is_eval=True)
+
+            current_action = self.trader.act(current_state, is_eval=True)
 
             if current_action == 1:
-                self.traider.inventory.append(self.dataset[i])
-                timeline.append((dataset[i], "Buying"))
+                self.trader.inventory.append(value)
+                timeline.append((value, "Buying"))
         
-            elif current_action==2 and len(self.traider.inventory) >0:
-                bought_value = self.traider.inventory.pop(0)
-                current_value = self.dataset[i]
+            elif current_action==2 and len(self.trader.inventory) >0:
+                bought_value = self.trader.inventory.pop(0)
+                current_value = value
                 profit = current_value - bought_value
                 self.train_profit += profit
-                timeline.append((dataset[i], "Selling"))
+                timeline.append((value, "Selling"))
 
             else:
-                timeline.append((dataset[i], "HODL"))
+                timeline.append((value, "HODL"))
             
-            bool_end = (i == self.len_data-1)
-            self.traider.remember(current_state, current_action, profit, next_state, bool_end)
+            self.trader.remember(current_state, current_action, profit, next_state, done)
             current_state = next_state
 
-            if bool_end:
+            if done:
                 break
         return profit, timeline
