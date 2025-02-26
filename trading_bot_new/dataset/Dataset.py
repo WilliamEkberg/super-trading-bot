@@ -7,21 +7,24 @@ import numpy as np
 from utils.utils import sigmoid
 
 class TradingDataset(Dataset):
-    def __init__(self, data_dir, asset_name, window_size, mode):
+    def __init__(self, data_dir, asset_name, window_size):
         self.data_dir = os.path.join(data_dir,asset_name)
-        self.mode = mode
         self.asset_name = asset_name
-        self.data = self.get_data()
         self.window_size = window_size
+        self.x, self.y = self.pre_process_data()
+        
         assert os.path.exists(self.data_dir), f"The path {self.data_dir} does not exist."
-        logger.info(f"Create Trading Dataset with {len(self.data)} time entries.")
+        logger.info(f"Create Trading Dataset with {len(self.x)} time entries.")
     
     def get_data(self):
         df = pd.read_csv(self.data_dir, header=None)
         df = df.iloc[:, 1:]  # Select all columns except the first
         rows = df.values.tolist()[1:]  # Convert rows to list format
 
-        return rows
+        for i in range(len(rows)):
+            rows[i] = [float(x) for x in rows[i]]
+        
+        return torch.tensor(rows)
 
     def get_state(self, data, t, n_days):
         """Returns an n-day state representation ending at time t as a PyTorch tensor.
@@ -47,18 +50,28 @@ class TradingDataset(Dataset):
         res = [sigmoid(block[i + 1] - block[i]) for i in range(n_days - 1)]
         # Return the state as a torch tensor with shape (1, n_days-1)
         return torch.tensor([res], dtype=torch.float)
+    
+    def pre_process_data(self):
+        financial_data = self.get_data()
+        x = []
+        y = []
+        for idx in range(len(financial_data)-1):
+            current_state = self.get_state(list(financial_data[:,4]), idx, self.window_size)
+            next_state =  current_state = self.get_state(list(financial_data[:,4]), idx+1, self.window_size)
+            x.append(current_state)
+            y.append(next_state)
+
+        return x, y
 
     def __len__(self):
-        return len(self.data)
+        return len(self.x)
 
     def __getitem__(self, idx):
-        # Do the processing of the entire dataset upon intitialization, and return the window chunks here in this funciton.
-        data_point = self.data[idx]
-        data_point = torch.tensor([float(x) for x in data_point])
-        transformed_adj_close = self.get_state(data_point[:,4], idx, self.window_size)
-        self.data_point[:,4] = transformed_adj_close
+        done = False
+        if idx == (self.__len__()-1):
+            done = True
 
-        return data_point
+        return self.x[idx], self.y[idx], done
         
 
 if __name__ =="__main__":
@@ -66,5 +79,3 @@ if __name__ =="__main__":
     asset_name = "AAPL_2018.csv"
     window_size = 100
     dataset = TradingDataset(data_dir, asset_name, window_size, "train")
-    
-    print(dataset[1])
