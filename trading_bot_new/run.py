@@ -26,16 +26,11 @@ Options:
 import logging
 import coloredlogs
 from docopt import docopt
+from torch.utils.data import DataLoader
+from dataset.Dataset import TradingDataset
 
 from agent import Agent
-from train import go_to_gym, testing
-from utils import (
-    get_stock_data,
-    format_currency,
-    format_position,
-    show_train_result,
-    get_device
-)
+from train import Train
 
 
 def main(train_stock, val_stock, window_size, batch_size, ep_count,
@@ -44,13 +39,22 @@ def main(train_stock, val_stock, window_size, batch_size, ep_count,
     """Trains the stock trading bot using Deep Q-Learning.
     Please see https://arxiv.org/abs/1312.5602 for more details.
     """
+    
     # Create the agent with the selected device (GPU if available, otherwise CPU)
     agent = Agent(window_size, strategy=strategy, pretrained=pretrained,
                   model_name=model_name, device=get_device())
     
-    train_data = get_stock_data(train_stock)
+    train_data = TradingDataset(train_stock)
     val_data = get_stock_data(val_stock)
     initial_offset = val_data[1] - val_data[0]
+
+
+
+    dataloader = DataLoader(train_stock, batch_size=batch_size, shuffle=False)
+    trainer = Train(train_stock, agent,batch_size, window_size)
+    
+
+    trainer
 
     for episode in range(1, ep_count + 1):
         train_result = go_to_gym(agent, episode, train_data,
