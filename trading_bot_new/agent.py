@@ -13,8 +13,8 @@ class Agent:
     def __init__(self, state_size, strategy="t-dqn", reset_every=1000,
                  pretrained=False, model_name=None, device=None):
         self.strategy = strategy
-        self.state_size = state_size    # size of input features
-        self.action_size = 3            # actions: [sit, buy, sell]
+        self.state_size = state_size 
+        self.action_size = 3            # [sit, buy, sell]
         self.model_name = model_name
         self.inventory = []
         self.memory = deque(maxlen=10000)
@@ -22,12 +22,12 @@ class Agent:
 
         # Training parameters
         self.gamma = 0.95             # discount factor
-        self.epsilon = 1.0            # exploration rate
+        self.epsilon = 1.0           # exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995
         self.learning_rate = 0.001
         
-        # Device: use GPU if available, else CPU
+       
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # To load a pretrained model or create a new Brain
@@ -47,12 +47,10 @@ class Agent:
             self.target_model.eval()
 
     def act(self, state, is_eval=False):
-        """Select an action for a given state."""
-        # Explore epsilon
         if not is_eval and random.random() <= self.epsilon:
             return random.randrange(self.action_size)
         
-        # Buy if first iteration
+        #Buy if first iteration
         if self.first_iter:
             self.first_iter = False
             return 1
@@ -85,20 +83,20 @@ class Agent:
         
         current_q = self.model(states).gather(1, actions).squeeze(1)
         
-        # Compute target Q-values based on strategy
+        #Compute target Q-values based on strategy
         with torch.no_grad():
             if self.strategy == "dqn":
-                next_q_values = self.model(next_states)
-                max_next_q, _ = torch.max(next_q_values, dim=1)
+                next_q_vals = self.model(next_states)
+                max_next_q, _ = torch.max(next_q_vals, dim=1)
             elif self.strategy == "t-dqn":
                 if self.n_iter % self.reset_every == 0:
                     self.target_model.load_state_dict(self.model.state_dict())
-                next_q_values = self.target_model(next_states)
-                max_next_q, _ = torch.max(next_q_values, dim=1)
+                next_q_vals = self.target_model(next_states)
+                max_next_q, _ = torch.max(next_q_vals, dim=1)
             elif self.strategy == "double-dqn":
                 if self.n_iter % self.reset_every == 0:
                     self.target_model.load_state_dict(self.model.state_dict())
-                # Use main network to determine best action
+        
                 next_q_main = self.model(next_states)
                 best_actions = torch.argmax(next_q_main, dim=1, keepdim=True)
                 next_q_target = self.target_model(next_states)
