@@ -36,18 +36,16 @@ from train import Trainer
 def get_args():
     parser = argparse.ArgumentParser(description="Simple greeting script")
 
-    parser.add_argument("--data_dir", type=str)
-    parser.add_argument("--train_stock_name", type=str, default="../data/")
+    parser.add_argument("--data_dir", type=str, default="../data/")
     parser.add_argument("--train_stock_name", type=str)
     parser.add_argument("--val_stock_name", type=str)
     parser.add_argument("--strategy", type=str)
-    parser.add_argument("--window_size", type=int)
-    parser.add_argument("--batch_size", type=int)
-    parser.add_argument("--episodes", type=int)
+    parser.add_argument("--window_size", type=int, default=10)
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--episodes", type=int, default=50)
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--pretrained", action="store_true")
     parser.add_argument("--model_name", type=str)
-    parser.add_argument("--debug", type=bool, action="store_true")
 
 
     # train_stock = args["<train-stock>"]
@@ -78,8 +76,6 @@ def main(train_stock_name, val_stock_name, window_size, batch_size, ep_count,
     train_data = TradingDataset(train_stock_name)
     val_data = TradingDataset(val_stock_name)
     initial_offset = val_data[1] - val_data[0]
-
-
 
     dataloader_train = DataLoader(train_stock_name, batch_size=1, shuffle=False)
     dataloader_val = DataLoader(train_stock_name, batch_size=1, shuffle=False)
