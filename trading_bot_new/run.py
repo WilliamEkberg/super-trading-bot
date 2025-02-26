@@ -27,9 +27,9 @@ import logging
 import coloredlogs
 from docopt import docopt
 
-from trading_bot_new.agent import Agent
-from trading_bot_new.train import go_to_gym, testing
-from trading_bot_new.utils import (
+from agent import Agent
+from train import go_to_gym, testing
+from utils import (
     get_stock_data,
     format_currency,
     format_position,
