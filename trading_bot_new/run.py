@@ -34,69 +34,75 @@ from agent import Agent
 from train import Trainer
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Simple greeting script")
-
-    parser.add_argument("--data_dir", type=str, default="../data/")
-    parser.add_argument("--train_stock_name", type=str)
-    parser.add_argument("--val_stock_name", type=str)
-    parser.add_argument("--strategy", type=str)
-    parser.add_argument("--window_size", type=int, default=10)
-    parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--episodes", type=int, default=50)
-    parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--pretrained", action="store_true")
-    parser.add_argument("--model_name", type=str)
-
-
-    # train_stock = args["<train-stock>"]
-    # val_stock = args["<val-stock>"]
-    # strategy = args["--strategy"]
-    # window_size = int(args["--window-size"])
-    # batch_size = int(args["--batch-size"])
-    # ep_count = int(args["--episode-count"])
-    # model_name = args["--model-name"]
-    # pretrained = args["--pretrained"]
-    # debug = args["--debug"]
-
-    args = parser.parse_args()
-    return args
+    parser = argparse.ArgumentParser(description="Stock Trading Bot Training")
+    parser.add_argument("--data_dir", type=str, default="../data/",
+                        help="Directory where your data files are located")
+    parser.add_argument("--train_stock_name", type=str, required=True,
+                        help="Name of the training stock data file (e.g. GOOG.csv)")
+    parser.add_argument("--val_stock_name", type=str, required=True,
+                        help="Name of the validation stock data file (e.g. GOOG_2018.csv)")
+    parser.add_argument("--strategy", type=str, default="t-dqn",
+                        help="Training strategy: dqn, t-dqn, or double-dqn")
+    parser.add_argument("--window_size", type=int, default=10,
+                        help="Window size for the n-day state representation")
+    parser.add_argument("--batch_size", type=int, default=32,
+                        help="Batch size for training")
+    parser.add_argument("--episodes", type=int, default=50,
+                        help="Number of training episodes")
+    parser.add_argument("--model_name", type=str, default="model_debug",
+                        help="Name of the model for saving/loading")
+    parser.add_argument("--pretrained", action="store_true",
+                        help="Whether to continue training a pretrained model")
+    parser.add_argument("--debug", action="store_true",
+                        help="Enable debug logging during evaluation")
+    return parser.parse_args()
 
 
-def main(train_stock_name, val_stock_name, window_size, batch_size, ep_count,
-         strategy="t-dqn", model_name="model_debug", pretrained=False,
-         debug=False):
-    """Trains the stock trading bot using Deep Q-Learning.
-    Please see https://arxiv.org/abs/1312.5602 for more details.
-    """
-    
-    # Create the agent with the selected device (GPU if available, otherwise CPU)
-    agent = Agent(window_size, strategy=strategy, pretrained=pretrained,
+
+def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep_count,
+         strategy="t-dqn", model_name="model_debug", pretrained=False, debug=False):
+    # The state size is window_size - 1 because TradingDataset.get_state returns a tensor of shape (1, window_size-1)
+    state_size = window_size - 1
+
+    # Create the agent with the correct state size and device.
+    agent = Agent(state_size, strategy=strategy, pretrained=pretrained,
                   model_name=model_name, device=get_device())
     
-    train_data = TradingDataset(train_stock_name)
-    val_data = TradingDataset(val_stock_name)
-    initial_offset = val_data[1] - val_data[0]
-
-    dataloader_train = DataLoader(train_stock_name, batch_size=1, shuffle=False)
-    dataloader_val = DataLoader(train_stock_name, batch_size=1, shuffle=False)
+    # Load the training and validation datasets.
+    train_data = TradingDataset(data_dir, train_stock_name, window_size)
+    val_data = TradingDataset(data_dir, val_stock_name, window_size)
+    
+    # Calculate an initial offset for display purposes.
+    # (Assumes that the third element in each __getitem__ is a numeric value.)
+    initial_offset = val_data[1][2].item() - val_data[0][2].item()
+    
+    # Create DataLoaders from the datasets.
+    dataloader_train = DataLoader(train_data, batch_size=1, shuffle=False)
+    dataloader_val = DataLoader(val_data, batch_size=1, shuffle=False)
+    
+    # Create the Trainer instance.
     trainer = Trainer(dataloader_train, dataloader_val, agent, batch_size, window_size)
+    
+    # Run training over the specified episodes.
+    # go_to_gym expects an iterable of episodes and a dataset.
+    trainer.go_to_gym(range(1, ep_count + 1), train_data)
+    
+    # Evaluate the agent on the validation dataset.
+    val_profit, timeline = trainer.testing(val_data)
+    
+    # Display the training and validation results.
+    train_result = (ep_count, ep_count, trainer.train_profit, 0.0)
+    show_train_result(train_result, val_profit, initial_offset)
 
-    for episode in range(1, ep_count + 1):
-        train_result = trainer.go_to_gym(agent, episode, train_data,
-                                   ep_count=ep_count,
-                                   batch_size=batch_size,
-                                   window_size=window_size)
-        val_result, _ = trainer.testing(agent, val_data, window_size, debug)
-        show_train_result(train_result, val_result, initial_offset)
 
 
 if __name__ == "__main__":
     args = get_args()
-
     coloredlogs.install(level="DEBUG")
     try:
-        main(args.train_stock_name, args.val_stock_name, args.window_size, args.batch_size,
-             args.episodes, strategy=args.strategy, model_name=args.model_name, 
+        main(args.data_dir, args.train_stock_name, args.val_stock_name, args.window_size,
+             args.batch_size, args.episodes, strategy=args.strategy, model_name=args.model_name, 
              pretrained=args.pretrained, debug=args.debug)
     except KeyboardInterrupt:
         print("Aborted!")
+

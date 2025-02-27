@@ -13,9 +13,18 @@ def sigmoid(x: float) -> float:
     except Exception as err:
         print("Error in sigmoid: " + str(err))
         return 0.0  # fallback value
-    
-format_position = lambda price: ('-$' if price < 0 else '+$') + '{0:.2f}'.format(abs(price))
-format_currency = lambda price: '${0:.2f}'.format(abs(price))
+
+def format_position(price):
+    # If price is a tensor, convert it to a float
+    if isinstance(price, torch.Tensor):
+        price = price.item()
+    return ('-$' if price < 0 else '+$') + '{0:.2f}'.format(abs(price))
+
+def format_currency(price):
+    # Similarly, convert price if it's a tensor
+    if isinstance(price, torch.Tensor):
+        price = price.item()
+    return '${0:.2f}'.format(abs(price))
 
 
 def show_train_result(result, evaluation_position, initial_offset):

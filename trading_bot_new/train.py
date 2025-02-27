@@ -21,8 +21,10 @@ class Trainer():
         loss_list = []
         dataset = self.dataset
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
-        for (current_state, next_state, value, done) in dataloader:
+        for (current_state, next_state, value, done) in tqdm(dataloader):
             profit = 0
+            
+            
 
             current_action = self.trader.act(current_state)
 
@@ -34,6 +36,7 @@ class Trainer():
                 current_value = value
                 profit = current_value - bought_value
                 self.train_profit += profit
+                
 
 
             self.trader.remember(current_state, current_action, profit, next_state, done)
@@ -44,7 +47,9 @@ class Trainer():
                     loss_list.append(replay_loss)
 
             current_state = next_state
-    
+        print(f'profit: {profit}')
+        print(f'self.train_profit: {self.train_profit}')
+        print(f'np.mean(loss_list): {np.mean(loss_list)}')
         if episode % 30 ==0:
             self.trader.save(episode)
         return profit, np.mean(loss_list)
