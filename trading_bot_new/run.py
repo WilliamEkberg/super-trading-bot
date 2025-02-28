@@ -34,18 +34,17 @@ from agent import Agent
 from train import Trainer
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Simple greeting script")
-
+    parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", type=str, default="../data/")
-    parser.add_argument("--train_stock_name", type=str)
-    parser.add_argument("--val_stock_name", type=str)
-    parser.add_argument("--strategy", type=str)
+    parser.add_argument("--val_stock_name", type=str, default="GOOG_2018.csv")
+    parser.add_argument("--train_stock_name", type=str, default="GOOG.csv")
+    parser.add_argument("--strategy", type=str, default="t-dqn")
     parser.add_argument("--window_size", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--episodes", type=int, default=50)
+    parser.add_argument("--model_name", type=str, default="test")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--pretrained", action="store_true")
-    parser.add_argument("--model_name", type=str)
 
 
     # train_stock = args["<train-stock>"]
@@ -59,10 +58,11 @@ def get_args():
     # debug = args["--debug"]
 
     args = parser.parse_args()
+
     return args
 
 
-def main(train_stock_name, val_stock_name, window_size, batch_size, ep_count,
+def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep_count,
          strategy="t-dqn", model_name="model_debug", pretrained=False,
          debug=False):
     """Trains the stock trading bot using Deep Q-Learning.
@@ -73,8 +73,8 @@ def main(train_stock_name, val_stock_name, window_size, batch_size, ep_count,
     agent = Agent(window_size, strategy=strategy, pretrained=pretrained,
                   model_name=model_name, device=get_device())
     
-    train_data = TradingDataset(train_stock_name)
-    val_data = TradingDataset(val_stock_name)
+    train_data = TradingDataset(data_dir, train_stock_name, window_size)
+    val_data = TradingDataset(data_dir, val_stock_name, window_size)
     initial_offset = val_data[1] - val_data[0]
 
     dataloader_train = DataLoader(train_stock_name, batch_size=1, shuffle=False)
@@ -92,10 +92,10 @@ def main(train_stock_name, val_stock_name, window_size, batch_size, ep_count,
 
 if __name__ == "__main__":
     args = get_args()
-
-    coloredlogs.install(level="DEBUG")
+    
+   # coloredlogs.install(level="DEBUG")
     try:
-        main(args.train_stock_name, args.val_stock_name, args.window_size, args.batch_size,
+        main(args.data_dir, args.train_stock_name, args.val_stock_name, args.window_size, args.batch_size,
              args.episodes, strategy=args.strategy, model_name=args.model_name, 
              pretrained=args.pretrained, debug=args.debug)
     except KeyboardInterrupt:
