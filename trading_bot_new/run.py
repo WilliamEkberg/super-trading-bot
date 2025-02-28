@@ -43,7 +43,7 @@ def get_args():
                         help="Name of the validation stock data file (e.g. GOOG_2018.csv)")
     parser.add_argument("--strategy", type=str, default="t-dqn",
                         help="Training strategy: dqn, t-dqn, or double-dqn")
-    parser.add_argument("--window_size", type=int, default=10,
+    parser.add_argument("--window_size", type=int, default=50,
                         help="Window size for the n-day state representation")
     parser.add_argument("--batch_size", type=int, default=32,
                         help="Batch size for training")
