@@ -28,7 +28,8 @@ import argparse
 from docopt import docopt
 from torch.utils.data import DataLoader
 from dataset.Dataset import TradingDataset
-from utils.utils import show_train_result, get_device, show_eval_result
+from utils.utils import show_train_result, get_device, show_eval_result, make_plot, make_dataframe
+import pandas as pd
 
 from agent import Agent
 from train import Trainer
@@ -94,11 +95,13 @@ def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep
     train_result = (ep_count, ep_count, trainer.train_profit, 0.0)
     show_train_result(train_result, val_profit, initial_offset)
 
+    data_frame = make_dataframe(val_stock_name)
+    make_plot(data_frame, timeline, title=val_stock_name)
 
 
 if __name__ == "__main__":
     args = get_args()
-    coloredlogs.install(level="DEBUG")
+    #coloredlogs.install(level="DEBUG")
     try:
         main(args.data_dir, args.train_stock_name, args.val_stock_name, args.window_size,
              args.batch_size, args.episodes, strategy=args.strategy, model_name=args.model_name, 
