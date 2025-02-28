@@ -47,10 +47,9 @@ class Trainer():
                     loss_list.append(replay_loss)
 
             current_state = next_state
-        print(f'profit: {profit}')
         print(f'self.train_profit: {self.train_profit}')
         print(f'np.mean(loss_list): {np.mean(loss_list)}')
-        if episode % 30 ==0:
+        if episode % 10 ==0:
             self.trader.save(episode)
         return profit, np.mean(loss_list)
     

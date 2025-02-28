@@ -36,7 +36,7 @@ class Agent:
         else:
             self.model = brain(self.state_size, self.action_size).to(self.device)
         
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
         
         # For (t-dqn and double-dqn)
         if self.strategy in ["t-dqn", "double-dqn"]:
