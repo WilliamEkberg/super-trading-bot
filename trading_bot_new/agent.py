@@ -1,6 +1,6 @@
 import random
 from collections import deque
-
+import os
 import numpy as np
 import torch
 import torch.nn as nn
@@ -50,21 +50,30 @@ class Agent:
         if not is_eval and random.random() <= self.epsilon:
             return random.randrange(self.action_size)
         
-        #Buy if first iteration
+        # Buy if first iteration
         if self.first_iter:
             self.first_iter = False
             return 1
 
-        self.model.eval() #Evaluation mode
-
+        self.model.eval()  # Evaluation mode
         state_tensor = torch.FloatTensor(state).to(self.device)
+        
+        # If the state tensor has an extra dimension (i.e. shape (1,1, state_size)),
+        # squeeze it so that the shape becomes (1, state_size)
+        if state_tensor.dim() == 3 and state_tensor.size(1) == 1:
+            state_tensor = state_tensor.squeeze(1)
+        
+        # Alternatively, if state_tensor.dim() == 1, add a batch dimension:
         if state_tensor.dim() == 1:
             state_tensor = state_tensor.unsqueeze(0)
+        
         with torch.no_grad():
             q_values = self.model(state_tensor)
         
-        self.model.train() #Turn training mode back on
+        self.model.train()  # Switch back to training mode
+        # Now, q_values should be of shape (1, action_size) so argmax gives a 1-element tensor.
         return int(torch.argmax(q_values, dim=1).item())
+
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
@@ -124,6 +133,7 @@ class Agent:
     def save(self, episode):
         if self.model_name is None:
             raise ValueError("Model name not provided.")
+        os.makedirs("models", exist_ok=True)  # Create the directory if it doesn't exist
         torch.save(self.model.state_dict(), f"models/{self.model_name}_{episode}.pth")
 
     def load(self):
