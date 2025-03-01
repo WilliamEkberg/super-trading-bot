@@ -61,10 +61,8 @@ def get_args():
 
 def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep_count,
          strategy="t-dqn", model_name="model_debug", pretrained=False, debug=False):
-    # The state size is window_size - 1 because TradingDataset.get_state returns a tensor of shape (1, window_size-1)
     state_size = window_size - 1
 
-    # Create the agent with the correct state size and device.
     agent = Agent(state_size, strategy=strategy, pretrained=pretrained,
                   model_name=model_name, device=get_device())
     
@@ -76,11 +74,9 @@ def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep
     # (Assumes that the third element in each __getitem__ is a numeric value.)
     initial_offset = val_data[1][2].item() - val_data[0][2].item()
     
-    # Create DataLoaders from the datasets.
     dataloader_train = DataLoader(train_data, batch_size=1, shuffle=False)
     dataloader_val = DataLoader(val_data, batch_size=1, shuffle=False)
     
-    # Create the Trainer instance.
     trainer = Trainer(dataloader_train, dataloader_val, agent, batch_size, window_size)
     
     # Run training over the specified episodes.

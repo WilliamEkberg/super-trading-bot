@@ -69,6 +69,7 @@ class Trainer():
             if current_action == 1:
                 self.trader.inventory.append(value)
                 timeline.append((value, "Buying"))
+                print("Buying")
         
             elif current_action==2 and len(self.trader.inventory) >0:
                 bought_value = self.trader.inventory.pop(0)
@@ -76,10 +77,10 @@ class Trainer():
                 profit = current_value - bought_value
                 self.train_profit += profit
                 timeline.append((value, "Selling"))
-
+                print("Selling")
             else:
                 timeline.append((value, "HODL"))
-            
+                print("HODL")
             self.trader.remember(current_state, current_action, profit, next_state, done)
             current_state = next_state
 

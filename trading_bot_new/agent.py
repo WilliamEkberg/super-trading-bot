@@ -19,7 +19,7 @@ class Agent:
         self.inventory = []
         self.memory = deque(maxlen=10000)
         self.first_iter = True
-
+        
         # Training parameters
         self.gamma = 0.95             # discount factor
         self.epsilon = 1.0           # exploration rate
