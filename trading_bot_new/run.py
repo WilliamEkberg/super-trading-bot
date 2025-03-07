@@ -44,7 +44,7 @@ def get_args():
                         help="Name of the validation stock data file (e.g. GOOG_2018.csv)")
     parser.add_argument("--strategy", type=str, default="t-dqn",
                         help="Training strategy: dqn, t-dqn, or double-dqn")
-    parser.add_argument("--window_size", type=int, default=10,
+    parser.add_argument("--window_size", type=int, default=50,
                         help="Window size for the n-day state representation")
     parser.add_argument("--batch_size", type=int, default=32,
                         help="Batch size for training")
@@ -97,6 +97,10 @@ def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep
 
     data_frame = make_dataframe(val_stock_name)
     make_plot(data_frame, timeline, title=val_stock_name)
+
+    val_profit, timeline = trainer.testing(train_data)
+    data_frame = make_dataframe(train_stock_name)
+    make_plot(data_frame, timeline, title=train_stock_name)
 
 
 if __name__ == "__main__":

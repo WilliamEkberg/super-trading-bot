@@ -58,7 +58,7 @@ class TradingDataset(Dataset):
         y = []
         for idx in range(len(financial_data)-1):
             current_state = self.get_state(list(financial_data[:,4]), idx, self.window_size)
-            next_state  = self.get_state(list(financial_data[:,4]), idx+1, self.window_size)
+            next_state = self.get_state(list(financial_data[:,4]), idx+1, self.window_size)
             x.append(current_state)
             y.append(next_state)
 
