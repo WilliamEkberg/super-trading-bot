@@ -47,15 +47,14 @@ class Trainer():
                     loss_list.append(replay_loss)
 
             current_state = next_state
-        print(f'profit: {profit}')
         print(f'self.train_profit: {self.train_profit}')
         print(f'np.mean(loss_list): {np.mean(loss_list)}')
-        if episode % 30 ==0:
+        if episode % 10 ==0:
             self.trader.save(episode)
         return profit, np.mean(loss_list)
     
     def testing(self, dataset):
-        profit = 0
+        total_profit = 0
 
         self.trader.inventory = []
         timeline = []
@@ -75,15 +74,22 @@ class Trainer():
                 bought_value = self.trader.inventory.pop(0)
                 current_value = value
                 profit = current_value - bought_value
-                self.train_profit += profit
+                total_profit += profit
                 timeline.append((value, "Selling"))
                 print("Selling")
             else:
                 timeline.append((value, "HODL"))
                 print("HODL")
             self.trader.remember(current_state, current_action, profit, next_state, done)
-            current_state = next_state
+            if done:
+                #print("trader.inventory", self.trader.inventory)
+                #print("current state", current_state)
+                #print("next_state", next_state)
+                #print("value", value)
+                total_profit += len(self.trader.inventory)*value
+                total_profit -= np.sum(self.trader.inventory)
+            current_state=next_state
 
             if done:
                 break
-        return profit, timeline
+        return total_profit, timeline
