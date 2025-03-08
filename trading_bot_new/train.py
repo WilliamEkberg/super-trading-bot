@@ -48,6 +48,7 @@ class Trainer():
                 profit = -bought_value +number_sell*value
                 self.total_profit += profit
                 self.money += float(value*number_sell)
+            print(self.money+total_shares_value)
             #if current_action == 1: #Buy
             #    self.trader.inventory.append(value)
 
@@ -56,7 +57,10 @@ class Trainer():
             #    current_value = value
             #    profit = current_value - bought_value
             #    self.train_profit += profit
-                
+            if done:
+                self.total_profit += len(self.trader.inventory)*value
+                self.total_profit -= np.sum(self.trader.inventory)
+                profit += len(self.trader.inventory)*value - np.sum(self.trader.inventory)
             
 
             self.trader.remember(current_state, current_action, profit, next_state, done)
@@ -65,15 +69,15 @@ class Trainer():
                 if replay_loss != None:
                     loss_list.append(replay_loss)
             current_state = next_state
-        print(f'self.total_profit: {self.total_profit}')
+        print(f'Testing: self.total_profit: {self.total_profit}')
         print(f'np.mean(loss_list): {np.mean(loss_list)}')
         if episode % 10 ==0:
             self.trader.save(episode)
-        return profit, np.mean(loss_list)
+        return self.total_profit, np.mean(loss_list)
     
     def testing(self, dataset):
         self.total_profit = 0
-
+        self.money = 10000
         self.trader.inventory = []
         timeline = []
 
@@ -120,7 +124,7 @@ class Trainer():
 
             #else:
             #    timeline.append((value, "HODL"))
-            
+            print("Total money", self.money+len(self.trader.inventory)*value)
             self.trader.remember(current_state, current_action, profit, next_state, done)
             if done:
                 #print("trader.inventory", self.trader.inventory)
@@ -132,5 +136,5 @@ class Trainer():
             current_state=next_state
             if done:
                 break
-        print(f'self.total_profit: {self.total_profit}')
+        print(f'Validation: self.total_profit: {self.total_profit}')
         return self.total_profit, timeline
