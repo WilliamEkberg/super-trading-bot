@@ -48,7 +48,7 @@ def get_args():
                         help="Window size for the n-day state representation")
     parser.add_argument("--batch_size", type=int, default=32,
                         help="Batch size for training")
-    parser.add_argument("--episodes", type=int, default=50,
+    parser.add_argument("--episodes", type=int, default=10,
                         help="Number of training episodes")
     parser.add_argument("--model_name", type=str, default="model_debug",
                         help="Name of the model for saving/loading")
@@ -88,7 +88,7 @@ def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep
     val_profit, timeline = trainer.testing(val_data)
     
     # Display the training and validation results.
-    train_result = (ep_count, ep_count, trainer.train_profit, 0.0)
+    train_result = (ep_count, ep_count, trainer.total_profit, 0.0)
     show_train_result(train_result, val_profit, initial_offset)
 
     data_frame = make_dataframe(val_stock_name)

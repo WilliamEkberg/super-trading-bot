@@ -14,7 +14,7 @@ class Agent:
                  pretrained=False, model_name=None, device=None):
         self.strategy = strategy
         self.state_size = state_size 
-        self.action_size = 3            # [sit, buy, sell]
+        self.action_size = 10            # [sit, buy, sell]
         self.model_name = model_name
         self.inventory = []
         self.memory = deque(maxlen=10000)
@@ -23,9 +23,9 @@ class Agent:
         # Training parameters
         self.gamma = 0.95             # discount factor
         self.epsilon = 1.0           # exploration rate
-        self.epsilon_min = 0.01
+        self.epsilon_min = 0.1
         self.epsilon_decay = 0.995
-        self.learning_rate = 0.001
+        self.learning_rate = 0.005
         
        
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,7 +50,7 @@ class Agent:
         if not is_eval and random.random() <= self.epsilon:
             return random.randrange(self.action_size)
         
-        # Buy if first iteration
+        ##Buy if first iteration
         if self.first_iter:
             self.first_iter = False
             return 1
@@ -66,7 +66,7 @@ class Agent:
         # Alternatively, if state_tensor.dim() == 1, add a batch dimension:
         if state_tensor.dim() == 1:
             state_tensor = state_tensor.unsqueeze(0)
-        
+
         with torch.no_grad():
             q_values = self.model(state_tensor)
         
