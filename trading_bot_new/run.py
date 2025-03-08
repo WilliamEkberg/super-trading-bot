@@ -48,7 +48,7 @@ def get_args():
                         help="Window size for the n-day state representation")
     parser.add_argument("--batch_size", type=int, default=32,
                         help="Batch size for training")
-    parser.add_argument("--episodes", type=int, default=10,
+    parser.add_argument("--episodes", type=int, default=1,
                         help="Number of training episodes")
     parser.add_argument("--model_name", type=str, default="model_debug",
                         help="Name of the model for saving/loading")

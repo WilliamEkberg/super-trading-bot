@@ -33,25 +33,21 @@ class Trainer():
             total_shares_value = len(self.trader.inventory)*value
             number_buy = np.floor((current_action_percentage*(total_shares_value+self.money) - total_shares_value)/value)
             number_buy = int(number_buy)
-            print("OLD! money, total", self.money, self.money+len(self.trader.inventory)*value)
-            print("percentage", current_action_percentage)
-            print("num_buy, action", number_buy, current_action)
             if number_buy > 0:
                 new_shares = [value]*number_buy
                 self.trader.inventory.extend(new_shares)
                 self.money -= float(value*number_buy)
 
             elif number_buy < 0:
-                bought_value = np.sum(self.trader.inventory[:-number_buy])
-                if len(self.trader.inventory)==-number_buy:
+                number_sell = -number_buy
+                bought_value = np.sum(self.trader.inventory[:number_sell])
+                if len(self.trader.inventory)==number_sell:
                     self.trader.inventory = [].copy()
                 else:
-                    self.trader.inventory = self.trader.inventory[-number_buy:].copy()
-                profit = bought_value - number_buy*value
+                    self.trader.inventory = self.trader.inventory[number_sell:].copy()
+                profit = -bought_value +number_sell*value
                 self.total_profit += profit
-                self.money -= float(value*number_buy)
-            print("num of shares", len(self.trader.inventory))
-            print("money, total", self.money, self.money+len(self.trader.inventory)*value)
+                self.money += float(value*number_sell)
             #if current_action == 1: #Buy
             #    self.trader.inventory.append(value)
 
@@ -101,14 +97,15 @@ class Trainer():
                 self.money -= float(value*number_buy)
             
             elif number_buy < 0:
-                bought_value = np.sum(self.trader.inventory[:-number_buy])
-                if len(self.trader.inventory)==-number_buy:
+                number_sell = -number_buy
+                bought_value = np.sum(self.trader.inventory[:number_sell])
+                if len(self.trader.inventory)==number_sell:
                     self.trader.inventory = [].copy()
                 else:
-                    self.trader.inventory = self.trader.inventory[-number_buy:].copy()
-                profit = bought_value - number_buy*value
+                    self.trader.inventory = self.trader.inventory[number_sell:].copy()
+                profit = -bought_value +number_sell*value
                 self.total_profit += profit
-                self.money -= float(value*number_buy)
+                self.money += float(value*number_sell)
 
             #if current_action == 1:
             #    self.trader.inventory.append(value)
