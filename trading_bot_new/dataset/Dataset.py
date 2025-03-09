@@ -5,6 +5,7 @@ import torch
 from loguru import logger
 import numpy as np
 from utils.utils import sigmoid
+from torch.utils.data import DataLoader
 
 class TradingDataset(Dataset):
     def __init__(self, data_dir, asset_name, window_size):
@@ -49,6 +50,7 @@ class TradingDataset(Dataset):
             block = [data[0]] * (-d) + data[0: t + 1]
 
         res = [sigmoid(block[i + 1] - block[i]) for i in range(n_days - 1)]
+
         # Return the state as a torch tensor with shape (1, n_days-1)
         return torch.tensor([res], dtype=torch.float)
     
@@ -72,11 +74,59 @@ class TradingDataset(Dataset):
         if idx == (self.__len__()-1):
             done = True
 
-        return self.x[idx], self.y[idx], torch.tensor(self.raw_data[:,4][idx]), done
-        
+        return self.x[idx], self.y[idx], self.raw_data[:,4][idx], done
+    
+class TradingDataset_V2(Dataset):
+    def __init__(self, data_dir, asset_name, window_size):
+        self.data_dir = os.path.join(data_dir,asset_name)
 
+        self.asset_name = asset_name
+        self.window_size = window_size
+        self.data = self.get_data()
+        
+        assert os.path.exists(self.data_dir), f"The path {self.data_dir} does not exist."
+        logger.info(f"Create Trading Dataset with {len(self.data)} time entries.")
+    
+    def get_data(self):
+        df = pd.read_csv(self.data_dir, header=None)
+        df = df.iloc[:, 1:]  # Select all columns except the first
+        rows = df.values.tolist()[1:]  # Convert rows to list format
+
+        for i in range(len(rows)):
+            rows[i] = [float(x) for x in rows[i]]
+        
+        return torch.tensor(rows)
+
+    def __len__(self):
+        return len(self.data)-1
+
+    def __getitem__(self, idx):
+        done = False
+        if idx == (self.__len__()):
+            done = True
+        
+        d = idx - self.window_size
+        if d >= 0:
+            x = self.data[0:-1,:][d:idx,:]
+            y = self.data[0:-1,:][d+1:idx+1,:]
+        else:
+            x = torch.vstack([self.data[0,:].repeat([-d,1]), self.data[0:-1,:][0: idx,:]])
+            y = torch.vstack([self.data[0,:].repeat([-(d+1),1]), self.data[0:-1,:][0: idx+1,:]])
+   
+        return x.float(), y.float(), self.data[0:-1,:][:,4][idx].float(), done
+        
 if __name__ =="__main__":
+    # data_dir = "../data/"
+    # asset_name = "AAPL_2018.csv"
+    # window_size = 50
+    # dataset = TradingDataset(data_dir, asset_name, window_size)
+    # x, y, raw_data, done = dataset[0]
+    # print(x.shape, y.shape)
+
     data_dir = "../data/"
-    asset_name = "AAPL_2018.csv"
-    window_size = 100
-    dataset = TradingDataset(data_dir, asset_name, window_size, "train")
+    asset_name = "GOOG.csv"
+    window_size = 50
+    dataset = TradingDataset(data_dir, asset_name, window_size)
+    dataloader_train = DataLoader(dataset, batch_size=1, shuffle=False)
+    for batch in dataloader_train:
+        print(batch[0].shape)
