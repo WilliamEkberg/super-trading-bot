@@ -1,7 +1,2 @@
-python run.py \
-    --data_dir ../data \ 
-    --train_stock_name GOOG.csv \
-    --val_stock_name GOOG_2018.csv \
-    --strategy t-dqn \
-    --model_name test
+python run.py  --data_dir ../data   --train_stock_name GOOG.csv  --val_stock_name GOOG_2018.csv  --strategy t-dqn  --model_name test
     

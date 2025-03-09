@@ -14,18 +14,18 @@ class Agent:
                  pretrained=False, model_name=None, device=None):
         self.strategy = strategy
         self.state_size = state_size 
-        self.action_size = 10            # [sit, buy, sell]
+        self.action_size = 2            # [sit, buy, sell]
         self.model_name = model_name
         self.inventory = []
         self.memory = deque(maxlen=10000)
         self.first_iter = True
         
         # Training parameters
-        self.gamma = 0.95             # discount factor
-        self.epsilon = 1.0           # exploration rate
-        self.epsilon_min = 0.1
-        self.epsilon_decay = 0.995
-        self.learning_rate = 0.005
+        self.gamma = 0.995             # discount factor
+        self.epsilon = 1           # exploration rate
+        self.epsilon_min = 0.05
+        self.epsilon_decay = 0.95
+        self.learning_rate = 0.0001 #from 0.001 to 0.0001
         
        
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -36,8 +36,8 @@ class Agent:
         else:
             self.model = brain(self.state_size, self.action_size).to(self.device)
         
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
-        
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate) #weight_decay=1e-4
+        #self.scheduler1 = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.95)
         # For (t-dqn and double-dqn)
         if self.strategy in ["t-dqn", "double-dqn"]:
             self.n_iter = 1
@@ -121,6 +121,7 @@ class Agent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        #self.scheduler1.step()
         
         #Decay exploration rate
         if self.epsilon > self.epsilon_min:
