@@ -41,7 +41,7 @@ class Agent:
             self.model = TransformedBrain(self.state_size,
                                            self.action_size,
                                            hidden_dim=256,
-                                           depth=3,
+                                           depth=2,
                                            heads=2,
                                            dim_head=256,
                                            mlp_dim=256,
@@ -64,7 +64,7 @@ class Agent:
                 self.target_model = TransformedBrain(self.state_size,
                                            self.action_size,
                                            hidden_dim=256,
-                                           depth=3,
+                                           depth=2,
                                            heads=2,
                                            dim_head=256,
                                            mlp_dim=256,
@@ -82,23 +82,17 @@ class Agent:
             return 1
 
         self.model.eval()  # Evaluation mode
-        state_tensor = torch.FloatTensor(state).to(self.device)
 
-        # If the state tensor has an extra dimension (i.e. shape (1,1, state_size)),
-        # squeeze it so that the shape becomes (1, state_size)
-        if state_tensor.dim() == 3 and state_tensor.size(1) == 1:
-            state_tensor = state_tensor#.squeeze(1)
-        
-        # Alternatively, if state_tensor.dim() == 1, add a batch dimension:
-        if state_tensor.dim() == 1:
-            state_tensor = state_tensor.unsqueeze(0)
+        if not isinstance(self.model, TransformedBrain):
+            state = state.squeeze(0)
 
         with torch.no_grad():
-            q_values = self.model(state_tensor)
+            q_values = self.model(state)
         
         self.model.train()  # Switch back to training mode
         
         # Now, q_values should be of shape (1, action_size) so argmax gives a 1-element tensor.
+
         return int(torch.argmax(q_values, dim=1).item())
 
 

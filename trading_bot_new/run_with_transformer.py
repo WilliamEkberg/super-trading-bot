@@ -19,9 +19,9 @@ def get_args():
                         help="Window size for the n-day state representation")
     parser.add_argument("--batch_size", type=int, default=64,
                         help="Batch size for training")
-    parser.add_argument("--episodes", type=int, default=5,
+    parser.add_argument("--episodes", type=int, default=3,
                         help="Number of training episodes")
-    parser.add_argument("--lr", type=float, default=1e-6,
+    parser.add_argument("--lr", type=float, default=1e-5,
                         help="Learning Rate")
     parser.add_argument("--model_name", type=str, default="model_debug",
                         help="Name of the model for saving/loading")
@@ -46,8 +46,7 @@ def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep
     
     # Calculate an initial offset for display purposes.
     # (Assumes that the third element in each __getitem__ is a numeric value.)
- #   initial_offset = val_data[1][2].item() - val_data[0][2].item()
-    initial_offset = 0
+    initial_offset = val_data[1][2].item() - val_data[0][2].item()
     
     dataloader_train = DataLoader(train_data, batch_size=1, shuffle=False)
     dataloader_val = DataLoader(val_data, batch_size=1, shuffle=False)
