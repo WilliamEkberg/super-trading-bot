@@ -71,6 +71,7 @@ class Agent:
             q_values = self.model(state_tensor)
         
         self.model.train()  # Switch back to training mode
+        
         # Now, q_values should be of shape (1, action_size) so argmax gives a 1-element tensor.
         return int(torch.argmax(q_values, dim=1).item())
 

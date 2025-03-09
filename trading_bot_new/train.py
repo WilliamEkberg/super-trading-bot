@@ -50,7 +50,7 @@ class Trainer():
                 number_sell = -number_buy
                 bought_value = np.sum(self.trader.inventory[:number_sell])
                 if len(self.trader.inventory)==number_sell:
-                    self.trader.inventory = [].copy()
+                    self.trader.inventory = []
                 else:
                     self.trader.inventory = self.trader.inventory[number_sell:].copy()
                 profit = -bought_value +number_sell*value
