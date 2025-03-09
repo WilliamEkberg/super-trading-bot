@@ -15,7 +15,7 @@ class Agent:
                  pretrained=False, model_type="FF",model_name=None, device=None):
         self.strategy = strategy
         self.state_size = state_size 
-        self.action_size = 3            # [sit, buy, sell]
+        self.action_size = 2            # [sit, buy, sell]
         self.model_name = model_name
         self.inventory = []
         self.memory = deque(maxlen=10000)
@@ -28,6 +28,7 @@ class Agent:
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995
         self.learning_rate = lr
+        
        
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -51,8 +52,8 @@ class Agent:
         logger.info(f"Initialized model with parameters: {total_params}")
 
         
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
-        
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate) #weight_decay=1e-4
+        #self.scheduler1 = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.95)
         # For (t-dqn and double-dqn)
         if self.strategy in ["t-dqn", "double-dqn"]:
             self.n_iter = 1
@@ -75,7 +76,7 @@ class Agent:
         if not is_eval and random.random() <= self.epsilon:
             return random.randrange(self.action_size)
         
-        # Buy if first iteration
+        ##Buy if first iteration
         if self.first_iter:
             self.first_iter = False
             return 1
@@ -91,7 +92,7 @@ class Agent:
         # Alternatively, if state_tensor.dim() == 1, add a batch dimension:
         if state_tensor.dim() == 1:
             state_tensor = state_tensor.unsqueeze(0)
-        
+
         with torch.no_grad():
             q_values = self.model(state_tensor)
         
@@ -148,6 +149,7 @@ class Agent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        #self.scheduler1.step()
         
         #Decay exploration rate
         if self.epsilon > self.epsilon_min:
