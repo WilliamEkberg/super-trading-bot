@@ -22,12 +22,8 @@ class Trainer():
         dataset = self.dataset
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
         for (current_state, next_state, value, done) in tqdm(dataloader):
-            profit = 0
-            
-            
-
+            profit = 0  
             current_action = self.trader.act(current_state)
-
             if current_action == 1: #Buy
                 self.trader.inventory.append(value)
 
@@ -37,8 +33,6 @@ class Trainer():
                 profit = current_value - bought_value
                 self.train_profit += profit
                 
-
-
             self.trader.remember(current_state, current_action, profit, next_state, done)
 
             if len(self.trader.memory) > self.batch_size:

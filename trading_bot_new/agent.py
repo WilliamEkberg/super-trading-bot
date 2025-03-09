@@ -6,12 +6,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from Brain import brain
+from Brain import brain, TransformedBrain
+from loguru import logger
 
 class Agent:
     """Stock Trading Bot using PyTorch"""
-    def __init__(self, state_size, strategy="t-dqn", reset_every=1000,
-                 pretrained=False, model_name=None, device=None):
+    def __init__(self, state_size, lr, strategy="t-dqn", reset_every=1000,
+                 pretrained=False, model_type="FF",model_name=None, device=None):
         self.strategy = strategy
         self.state_size = state_size 
         self.action_size = 3            # [sit, buy, sell]
@@ -19,22 +20,36 @@ class Agent:
         self.inventory = []
         self.memory = deque(maxlen=10000)
         self.first_iter = True
+        self.model_type = model_type
         
         # Training parameters
         self.gamma = 0.95             # discount factor
         self.epsilon = 1.0           # exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995
-        self.learning_rate = 0.001
-        
+        self.learning_rate = lr
        
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # To load a pretrained model or create a new Brain
         if pretrained and self.model_name is not None:
             self.model = self.load()
-        else:
+        elif self.model_type == "FF":
             self.model = brain(self.state_size, self.action_size).to(self.device)
+        else:
+            self.model = TransformedBrain(self.state_size,
+                                           self.action_size,
+                                           hidden_dim=256,
+                                           depth=3,
+                                           heads=2,
+                                           dim_head=256,
+                                           mlp_dim=256,
+                                           window_size=50).to(device)
+
+
+        total_params = sum(p.numel() for p in self.model.parameters())
+        logger.info(f"Initialized model with parameters: {total_params}")
+
         
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=1e-4)
         
@@ -42,7 +57,17 @@ class Agent:
         if self.strategy in ["t-dqn", "double-dqn"]:
             self.n_iter = 1
             self.reset_every = reset_every
-            self.target_model = brain(self.state_size, self.action_size).to(self.device)
+            if self.model_type == "FF":
+                self.target_model = brain(self.state_size, self.action_size).to(self.device)
+            else:
+                self.target_model = TransformedBrain(self.state_size,
+                                           self.action_size,
+                                           hidden_dim=256,
+                                           depth=3,
+                                           heads=2,
+                                           dim_head=256,
+                                           mlp_dim=256,
+                                           window_size=50).to(device)
             self.target_model.load_state_dict(self.model.state_dict())
             self.target_model.eval()
 
@@ -57,11 +82,11 @@ class Agent:
 
         self.model.eval()  # Evaluation mode
         state_tensor = torch.FloatTensor(state).to(self.device)
-        
+
         # If the state tensor has an extra dimension (i.e. shape (1,1, state_size)),
         # squeeze it so that the shape becomes (1, state_size)
         if state_tensor.dim() == 3 and state_tensor.size(1) == 1:
-            state_tensor = state_tensor.squeeze(1)
+            state_tensor = state_tensor#.squeeze(1)
         
         # Alternatively, if state_tensor.dim() == 1, add a batch dimension:
         if state_tensor.dim() == 1:
@@ -81,15 +106,17 @@ class Agent:
     def train_experience_replay(self, batch_size):
         if len(self.memory) < batch_size:
             return None
-        
         mini_batch = random.sample(self.memory, batch_size)
-        
-        states = torch.FloatTensor(np.vstack([s[0] for (s, a, r, s_next, done) in mini_batch])).to(self.device)
+        if self.model_type == "FF":
+            states = torch.FloatTensor(np.vstack([s[0] for (s, a, r, s_next, done) in mini_batch])).to(self.device)
+            next_states = torch.FloatTensor(np.vstack([s_next[0] for (s, a, r, s_next, done) in mini_batch])).to(self.device)
+        else:
+            states = torch.FloatTensor(np.vstack([s for (s, a, r, s_next, done) in mini_batch])).to(self.device)
+            next_states = torch.FloatTensor(np.vstack([s_next for (s, a, r, s_next, done) in mini_batch])).to(self.device)
         actions = torch.LongTensor([a for (s, a, r, s_next, done) in mini_batch]).unsqueeze(1).to(self.device)
         rewards = torch.FloatTensor([r for (s, a, r, s_next, done) in mini_batch]).to(self.device)
-        next_states = torch.FloatTensor(np.vstack([s_next[0] for (s, a, r, s_next, done) in mini_batch])).to(self.device)
         dones = torch.FloatTensor([done for (s, a, r, s_next, done) in mini_batch]).to(self.device)
-        
+
         current_q = self.model(states).gather(1, actions).squeeze(1)
         
         #Compute target Q-values based on strategy
@@ -117,7 +144,7 @@ class Agent:
             targets = rewards + (1 - dones) * self.gamma * max_next_q #If done, no future reward is added
         
         loss = F.smooth_l1_loss(current_q, targets)
-        
+
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
