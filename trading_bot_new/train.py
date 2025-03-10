@@ -32,11 +32,15 @@ class Trainer():
             #if change>250:
                 #print(change)
                 #print(np.tanh(change/100))
-            change = np.tanh(change/150) #from /100 to /150
-            #print(change)
+            change = -np.exp(-change/150) + 1
+            #print("exp", change)
+            change = np.tanh(change*2) #from /100 to /150
+            #print("tanh", change)
+            #change = np.log(change+3) #seems to work for transformer
+            #print("log", change)
 
             current_action = self.trader.act(current_state)
-            current_action_percentage = current_action#/10
+            current_action_percentage = current_action/10
 
             total_shares_value = len(self.trader.inventory)*value
             number_buy = np.floor((current_action_percentage*(total_shares_value+self.money) - total_shares_value)/value)
@@ -103,7 +107,7 @@ class Trainer():
 
             current_action = self.trader.act(current_state, is_eval=True)
             #print(current_action)
-            current_action_percentage = current_action#/10
+            current_action_percentage = current_action/10
             timeline.append((value, current_action_percentage))
 
             total_shares_value = len(self.trader.inventory)*value

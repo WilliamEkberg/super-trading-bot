@@ -15,7 +15,7 @@ class Agent:
                  pretrained=False, model_type="FF",model_name=None, device=None):
         self.strategy = strategy
         self.state_size = state_size 
-        self.action_size = 2            # [sit, buy, sell]
+        self.action_size = 11            # [sit, buy, sell]
         self.model_name = model_name
         self.inventory = []
         self.memory = deque(maxlen=10000)
@@ -24,10 +24,10 @@ class Agent:
         
         # Training parameters
         self.gamma = 0.95             # discount factor
-        self.epsilon = 1.0           # exploration rate
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
-        self.learning_rate = lr
+        self.epsilon = 0.01           # exploration rate #Q-learning: 0.1 (all 10 actions), 0.05 (two actions) Transformer: ??
+        self.epsilon_min = 0.1
+        self.epsilon_decay = 0.995  #Q-learning: 0.995 (two actions), 0.9999 (all 10 actions) Transformer: ??
+        self.learning_rate = 1e-6 #Q-learning: 0.0001 (1e-4) #transformer: ??
         
        
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
