@@ -19,7 +19,7 @@ def get_args():
                         help="Window size for the n-day state representation")
     parser.add_argument("--batch_size", type=int, default=64,
                         help="Batch size for training")
-    parser.add_argument("--episodes", type=int, default=3,
+    parser.add_argument("--episodes", type=int, default=5,
                         help="Number of training episodes")
     parser.add_argument("--lr", type=float, default=1e-5,
                         help="Learning Rate")
