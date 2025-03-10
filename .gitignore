@@ -108,3 +108,5 @@ venv.bak/
 
 # poetry stuff
 poetry.lock
+
+trading_bot_new/test.py

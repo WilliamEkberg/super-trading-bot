@@ -40,9 +40,9 @@ class Agent:
         else:
             self.model = TransformedBrain(self.state_size,
                                            self.action_size,
-                                           hidden_dim=256,
+                                           hidden_dim=512,
                                            depth=2,
-                                           heads=2,
+                                           heads=3,
                                            dim_head=256,
                                            mlp_dim=256,
                                            window_size=50).to(device)
@@ -63,9 +63,9 @@ class Agent:
             else:
                 self.target_model = TransformedBrain(self.state_size,
                                            self.action_size,
-                                           hidden_dim=256,
+                                           hidden_dim=512,
                                            depth=2,
-                                           heads=2,
+                                           heads=3,
                                            dim_head=256,
                                            mlp_dim=256,
                                            window_size=50).to(device)
