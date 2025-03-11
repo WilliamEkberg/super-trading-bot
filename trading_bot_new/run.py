@@ -32,7 +32,7 @@ from utils.utils import show_train_result, get_device, show_eval_result, make_pl
 import pandas as pd
 
 from agent import Agent
-from train import Trainer
+from train import Trainer #modify for steps!!!!!
 
 def get_args():
     parser = argparse.ArgumentParser(description="Stock Trading Bot Training")
@@ -50,7 +50,7 @@ def get_args():
                         help="Batch size for training")
     parser.add_argument("--lr", type=float, default=1e-3,
                         help="Learning Rate")
-    parser.add_argument("--episodes", type=int, default=12,
+    parser.add_argument("--episodes", type=int, default=7,
                         help="Number of training episodes")
     parser.add_argument("--model_name", type=str, default="model_debug",
                         help="Name of the model for saving/loading")
@@ -65,7 +65,7 @@ def get_args():
 def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep_count,
          strategy="t-dqn", model_name="model_debug", pretrained=False, debug=False):
     # The state size is window_size - 1 because TradingDataset.get_state returns a tensor of shape (1, window_size-1)
-    state_size = window_size - 1
+    state_size = window_size - 1 #+ 1 #+1 if steps
 
     # Create the agent with the correct state size and device.
     agent = Agent(state_size, args.lr, strategy=strategy, pretrained=pretrained,

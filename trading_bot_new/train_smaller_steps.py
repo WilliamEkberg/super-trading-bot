@@ -1,6 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
+import torch
 
 class Trainer():
     def __init__(self, dataloader_train, dataloader_val, trader, batch_size=32, obs_window=10):
@@ -25,6 +26,7 @@ class Trainer():
         dataset = self.dataset
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
         old_value = None
+        old_percentage = 0
         for (current_state, next_state, value, done) in tqdm(dataloader):
             profit = 0
             if old_value == None: old_value=value
@@ -32,16 +34,24 @@ class Trainer():
             #if change>250:
                 #print(change)
                 #print(np.tanh(change/100))
-            change = -np.exp(-change/150) + 1
+            #change = -np.exp(-change/150) + 1 #/150, +1
             #print("exp", change)
-            change = np.tanh(change*2) #from /100 to /150
+            change = np.tanh(change/40) #from /100 to /150 #*2 with exp
+            #print(change)
             #print("tanh", change)
             #change = np.log(change+3) #seems to work for transformer
             #print("log", change)
-
+            #print(current_state)
+            #print(torch.tensor(old_percentage).view(1,1,-1))
+            current_state = torch.cat((current_state, torch.tensor(old_percentage).view(1,1,-1)), dim=2)#for steps
             current_action = self.trader.act(current_state)
-            current_action_percentage = current_action/10
-
+            #print(current_action)
+            current_action_percentage = (old_percentage*10 + current_action-1)/10
+            if current_action_percentage>1: #no bigger invest than 100%
+                current_action_percentage = 1
+            elif current_action_percentage<0: #no smaller invest than 0%
+                current_action_percentage = 0
+            next_state = torch.cat((next_state, torch.tensor(current_action_percentage).view(1,1,-1)), dim=2)#for steps
             total_shares_value = len(self.trader.inventory)*value
             number_buy = np.floor((current_action_percentage*(total_shares_value+self.money) - total_shares_value)/value)
             number_buy = int(number_buy)
@@ -60,28 +70,13 @@ class Trainer():
                 profit = -bought_value +number_sell*value
                 self.train_profit += profit
                 self.money += float(value*number_sell)
-            
-                #print("bought value", bought_value)
-                #print("sell value", value*number_sell)
-                #print("profit", profit)
-            #print(change)
-            #print(self.trader.inventory)
-            #print("len of inventory", len(self.trader.inventory))
-            #print("number_buy", number_buy)
-            #print(self.money+total_shares_value)
-            #if current_action == 1: #Buy
-            #    self.trader.inventory.append(value)
-
-            #elif current_action == 2 and len(self.trader.inventory) >0: #Sell
-            #    bought_value = self.trader.inventory.pop(0)
-            #    current_value = value
-            #    profit = current_value - bought_value
-            #    self.train_profit += profit
             if done: #change???
                 self.train_profit += len(self.trader.inventory)*value
                 self.train_profit -= np.sum(self.trader.inventory)
                 profit += len(self.trader.inventory)*value - np.sum(self.trader.inventory)
             #print("profit", self.train_profit)
+
+
             self.trader.remember(current_state, current_action, change, next_state, done) #loss value due to increasing complexity??
             if len(self.trader.memory) > self.batch_size:
                 replay_loss = self.trader.train_experience_replay(self.batch_size)
@@ -89,6 +84,7 @@ class Trainer():
                     loss_list.append(replay_loss)
             current_state = next_state
             old_value = value
+            old_percentage = current_action_percentage
         print(f'Testing: self.train_profit: {self.train_profit}')
         print(f'np.mean(loss_list): {np.mean(loss_list)}')
         if episode % 10 ==0:
@@ -102,16 +98,25 @@ class Trainer():
         timeline = []
 
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
+        old_percentage = 0
         for (current_state, next_state, value, done) in dataloader:
             profit = 0
 
-            current_action = self.trader.act(current_state, is_eval=True)
-            #print(current_action)
-            current_action_percentage = current_action/10
+            current_state = torch.cat((current_state, torch.tensor(old_percentage).view(1,1,-1)), dim=2)#for steps
+            current_action = self.trader.act(current_state)
+
+            current_action_percentage = (old_percentage*10 + current_action-1)/10 #minus 1 to get [0, 1, 2] -> [-0.1, 0, 0.1]
+
+            if current_action_percentage>1: #no bigger invest than 100%
+                current_action_percentage = 1
+            elif current_action_percentage<0: #no smaller invest than 0%
+                current_action_percentage = 0
+
+            next_state = torch.cat((next_state, torch.tensor(current_action_percentage).view(1,1,-1)), dim=2)#for steps
+
 
             total_shares_value = len(self.trader.inventory)*value
             Portfolio_value = total_shares_value+self.money
-
             number_buy = np.floor((current_action_percentage*(total_shares_value+self.money) - total_shares_value)/value)
             number_buy = int(number_buy)
 
@@ -131,20 +136,6 @@ class Trainer():
                 self.total_profit += profit
                 self.money += value*number_sell
 
-            #if current_action == 1:
-            #    self.trader.inventory.append(value)
-            #    timeline.append((value, "Buying"))
-        
-            #elif current_action==2 and len(self.trader.inventory) >0:
-            #    bought_value = self.trader.inventory.pop(0)
-            #    current_value = value
-            #    profit = current_value - bought_value
-            #    total_profit += profit
-            #    timeline.append((value, "Selling"))
-
-            #else:
-            #    timeline.append((value, "HODL"))
-            #print("Total money", self.money+len(self.trader.inventory)*value)
             self.trader.remember(current_state, current_action, profit, next_state, done)
             if done:
                 profit += len(self.trader.inventory)*value
@@ -152,6 +143,7 @@ class Trainer():
                 self.total_profit += len(self.trader.inventory)*value
                 self.total_profit -= np.sum(self.trader.inventory)
             timeline.append((value, current_action_percentage, profit, Portfolio_value, len(self.trader.inventory), number_buy)) #save for the plot
+            old_percentage = current_action_percentage
             current_state=next_state
             if done:
                 break

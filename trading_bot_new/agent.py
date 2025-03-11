@@ -15,7 +15,7 @@ class Agent:
                  pretrained=False, model_type="FF",model_name=None, device=None):
         self.strategy = strategy
         self.state_size = state_size 
-        self.action_size = 11            # [sit, buy, sell]
+        self.action_size = 3            # [sit, buy, sell] #set to 3 for small actions
         self.model_name = model_name
         self.inventory = []
         self.memory = deque(maxlen=10000)
@@ -24,10 +24,10 @@ class Agent:
         
         # Training parameters
         self.gamma = 0.95             # discount factor
-        self.epsilon = 0.01           # exploration rate #Q-learning: 0.1 (all 10 actions), 0.05 (two actions) Transformer: ??
+        self.epsilon = 0.1           # exploration rate #Q-learning: 0.1 (all 10 actions), 0.05 (two actions) Transformer: ??
         self.epsilon_min = 0.1
-        self.epsilon_decay = 0.995  #Q-learning: 0.995 (two actions), 0.9999 (all 10 actions) Transformer: ??
-        self.learning_rate = 1e-6 #Q-learning: 0.0001 (1e-4) #transformer: ??
+        self.epsilon_decay = 0.9995  #Q-learning: 0.995 (two actions), 0.9999 (all 10 actions) Transformer: ??
+        self.learning_rate = 0.0005 #Q-learning: 0.0001 (1e-4) #transformer: lr
         
        
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -52,7 +52,7 @@ class Agent:
         logger.info(f"Initialized model with parameters: {total_params}")
 
         
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate) #weight_decay=1e-4
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=1e-3) #weight_decay=1e-4
         #self.scheduler1 = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.95)
         # For (t-dqn and double-dqn)
         if self.strategy in ["t-dqn", "double-dqn"]:
