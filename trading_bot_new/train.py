@@ -87,6 +87,7 @@ class Trainer():
 
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
         for (current_state, next_state, value, done) in dataloader:
+            if len(timeline)==0: timeline.insert(0, (float(value), 0, 0, 10000, 0, 0))
             profit = 0
 
             current_action = self.trader.act(current_state, is_eval=True)
@@ -125,7 +126,7 @@ class Trainer():
                 profit -= np.sum(self.trader.inventory)
                 self.total_profit += len(self.trader.inventory)*value
                 self.total_profit -= np.sum(self.trader.inventory)
-            timeline.append((value, current_action_percentage, profit, Portfolio_value, len(self.trader.inventory), number_buy)) #save for the plot
+            timeline.append((float(value), current_action_percentage, float(profit), float(Portfolio_value), len(self.trader.inventory), number_buy)) #save for the plot
             current_state=next_state
             if done:
                 break

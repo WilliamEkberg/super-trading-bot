@@ -75,35 +75,6 @@ def make_plot(df, history, title="Trading on googl stock in 2018"):
     if isinstance(history, torch.Tensor):
         history = history.tolist()
 
-    history
-    history = [(history[0][0], 0)] + history
-    #fig, ax = plt.subplots(figsize=(12, 6))
-    
-    # Extract positions and actions
-    #position = np.array([history[0][0]] + [x[0] for x in history])
-    #actions = [0] + [x[1] for x in history]
-    #df = df.copy()  # Avoid modifying original DataFrame
-    #df['position'] = position
-    #df['action'] = actions
-    
-    # Plot stock positions
-    #ax.plot(df['date'], df['position'], label='Stock Position', color='green', alpha=0.5)
-    
-    # Plot BUY and SELL actions
-    #buy_signals = df[df['action'] == 'Buying']
-    #sell_signals = df[df['action'] == 'Selling']
-    #ax.scatter(buy_signals['date'], buy_signals['position'], color='blue', label='Buying', marker='^', s=100)
-    #ax.scatter(sell_signals['date'], sell_signals['position'], color='red', label='Selling', marker='v', s=100)
-    
-    # Formatting
-    #ax.set(title=title, xlabel="date", ylabel="stock price")
-    #ax.legend()
-    #ax.grid(True, linestyle='--', alpha=0.6)
-    #ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    #plt.xticks(rotation=45)
-    #plt.show()
-
-    
     # Ensure history length matches df
     if len(history) != len(df):
         raise ValueError("Length of history does not match length of DataFrame")

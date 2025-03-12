@@ -63,12 +63,15 @@ def get_args():
 
 
 def main(train_stock_name, val_stock_name, mdp, strategy):
+    train_stock_name = "GOOG.csv" #change
+    val_stock_name = "GOOG_2018.csv" #change
     train_stock_name = train_stock_name
     val_stock_name = val_stock_name
     mdp = mdp #"10%_steps", "all_10%_steps", "all_or_nothing"
     strategy = strategy #"Transformer", "t-dqn", "double-dqn"
 
     #hyperparameters:
+    lr=1e-3
     ep_count = 0 #This might need to change
     if strategy == "Transformer":
       ep_count = 2 
@@ -104,7 +107,7 @@ def main(train_stock_name, val_stock_name, mdp, strategy):
     else: raise ValueError("Wrong mdp")
 
     # Create the agent with the correct state size and device.
-    agent = Agent(state_size, args.lr, strategy=strategy, pretrained=pretrained,
+    agent = Agent(state_size, lr, strategy=strategy, pretrained=pretrained,
                   model_name=model_name, device=get_device(), mdp=mdp)
     
     # Load the training and validation datasets.
@@ -138,7 +141,9 @@ def main(train_stock_name, val_stock_name, mdp, strategy):
 
     data_frame = make_dataframe(val_stock_name)
     return timeline, data_frame
-    make_plot(data_frame, timeline, title=val_stock_name)
+
+    #Portfolio Percentage, In or Out, Up or Down
+    make_plot(data_frame, timeline, title=f"Action space '' on stock {val_stock_name} with DQN")
 
     val_profit, timeline = trainer.testing(train_data)
     data_frame = make_dataframe(train_stock_name)
