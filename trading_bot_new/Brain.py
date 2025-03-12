@@ -6,8 +6,10 @@ from transformer_model import Transformer
 from einops import rearrange, repeat
 
 class brain(nn.Module):
-    def __init__(self, state_size, action_size, hidden_dim=50, hidden_dim_start_and_end = 50):
+    def __init__(self, state_size, action_size, hidden_dim=128, hidden_dim_start_and_end = 128):
         super(brain, self).__init__()
+        self.layer_norm_input = nn.LayerNorm(state_size)
+        self.layer_norm = nn.LayerNorm(hidden_dim)
         self.fc1 = nn.Linear(state_size, hidden_dim_start_and_end)
         self.lRelu1 = nn.LeakyReLU(0.01)
         self.fc2 = nn.Linear(hidden_dim_start_and_end, hidden_dim)
@@ -24,9 +26,13 @@ class brain(nn.Module):
         #x = self.lRelu3(self.fc3(x))
         #x = self.lRelu4(self.fc4(x))
 
+        #x = self.layer_norm_input(x)
         x = torch.relu(self.fc1(x))
+        x = self.layer_norm(x)
         x = torch.relu(self.fc2(x))
+        x = self.layer_norm(x)
         x = torch.relu(self.fc3(x))
+        x = self.layer_norm(x)
         x = torch.relu(self.fc4(x))
         return self.fc5(x)
 

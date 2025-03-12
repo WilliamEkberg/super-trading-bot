@@ -101,7 +101,7 @@ class Trainer_InSteps():
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
         old_percentage = 0
         for (current_state, next_state, value, done) in dataloader:
-            if len(timeline)==0: timeline.insert(0, (float(value), 0, 0, 10000, 0, 0))
+            if len(timeline) == 0: timeline.insert(0, (float(value), 0, 0, 10000, 0, 0))
             profit = 0
 
             current_state = torch.cat((current_state, torch.tensor(old_percentage).view(1,1,-1)), dim=2)#for steps

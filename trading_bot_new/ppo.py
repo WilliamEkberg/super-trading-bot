@@ -35,7 +35,7 @@ def generate_toy_stock_data(n_days=1000, volatility=0.01, trend=0.0005, seed=42)
     #     'price': prices
     # })
 
-    df = pd.read_csv("../data/GOOG.csv")
+    df = pd.read_csv("../data/google/combined_test_data.csv")
 
     # Add some technical indicators
     # Simple Moving Average (SMA)
@@ -108,10 +108,12 @@ class StockTradingEnv:
         
         for i, feature in enumerate(self.features):
             values = self.data[feature].iloc[self.current_step - self.window_size:self.current_step].values
+
             # Normalize values to improve learning
             feature_mean = np.mean(values)
             feature_std = np.std(values) + 1e-10  # Avoid division by zero
             normalized_values = (values - feature_mean) / feature_std
+            
             feature_matrix[:, i] = normalized_values
         
         # Flatten the feature matrix to 1D array

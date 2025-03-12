@@ -111,8 +111,8 @@ def make_plot(df, history, title="Trading on googl stock in 2018"):
     plt.tight_layout()
     plt.show()
 
-def make_dataframe(stock_name):
-    df = pd.read_csv(f"../data/{stock_name}", usecols=['Date', 'Adj Close'])
-    df.rename(columns={'Adj Close': 'actual', 'Date': 'date'}, inplace=True)
+def make_dataframe(data_path):
+    df = pd.read_csv(data_path, usecols=['Date', 'Index_Value'], sep=";")
+    df.rename(columns={'Index_Value': 'actual', 'Date': 'date'}, inplace=True)
     df['date'] = pd.to_datetime(df['date'])
     return df
