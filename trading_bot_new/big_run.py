@@ -18,10 +18,10 @@ def run_multiple_times(dataset, action_space, method, n_runs=N_RUNS):
             train_dataset = "Novotek_2019_2024.csv"
 
         timeline, _ = run.main(
-            train_dataset = train_dataset,
-            val_dataset= dataset,
-            action_space=action_space,
-            method=method,
+            train_stock_name = train_dataset,
+            val_stock_name= dataset,
+            mdp=action_space,
+            strategy=method,
         )
     
         all_timelines.append(timeline)
