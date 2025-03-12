@@ -27,13 +27,12 @@ import coloredlogs
 import argparse
 from docopt import docopt
 from torch.utils.data import DataLoader
-from dataset.Dataset import TradingDataset, TradingDataset_V3
+from dataset.Dataset import TradingDataset
 from utils.utils import show_train_result, get_device, show_eval_result, make_plot, make_dataframe
 import pandas as pd
 
 from agent import Agent
 from train import Trainer #modify for steps!!!!!
-import os
 
 def get_args():
     parser = argparse.ArgumentParser(description="Stock Trading Bot Training")
@@ -47,7 +46,7 @@ def get_args():
                         help="Window size for the n-day state representation")
     parser.add_argument("--batch_size", type=int, default=32,
                         help="Batch size for training")
-    parser.add_argument("--lr", type=float, default=1e-3,
+    parser.add_argument("--lr", type=float, default=1e-3,       # 1e-3
                         help="Learning Rate")
     parser.add_argument("--episodes", type=int, default=5,
                         help="Number of training episodes")
@@ -64,16 +63,15 @@ def get_args():
 def main(data_dir, stock_name, window_size, batch_size, ep_count,
          strategy="t-dqn", model_name="model_debug", pretrained=False, debug=False):
     # The state size is window_size - 1 because TradingDataset.get_state returns a tensor of shape (1, window_size-1)
-    state_size = 2*(window_size - 1)
-    #state_size = window_size*10 + 1*(window_size-1)
+    state_size = window_size - 1 #+ 1 #+1 if steps
 
     # Create the agent with the correct state size and device.
     agent = Agent(state_size, args.lr, strategy=strategy, pretrained=pretrained,
                   model_name=model_name, device=get_device())
     
     # Load the training and validation datasets.
-    train_data = TradingDataset_V3(data_dir, stock_name, window_size, type='train')
-    val_data = TradingDataset_V3(data_dir, stock_name, window_size, type='test')
+    train_data = TradingDataset(data_dir, stock_name, window_size, type='train')
+    val_data = TradingDataset(data_dir, stock_name, window_size, type='test')
     
     # Calculate an initial offset for display purposes.
     # (Assumes that the third element in each __getitem__ is a numeric value.)
@@ -98,12 +96,12 @@ def main(data_dir, stock_name, window_size, batch_size, ep_count,
     train_result = (ep_count, ep_count, trainer.train_profit, 0.0)
     show_train_result(train_result, val_profit, initial_offset)
 
-    data_frame = make_dataframe(os.path.join(data_dir, stock_name, 'combined_test_data.csv'))
-    make_plot(data_frame, timeline, title=f"Test {stock_name}")
+    # data_frame = make_dataframe(val_stock_name)
+    # make_plot(data_frame, timeline, title=val_stock_name)
 
-    val_profit, timeline = trainer.testing(train_data)
-    data_frame = make_dataframe(os.path.join(data_dir, stock_name, 'combined_train_data.csv'))
-    make_plot(data_frame, timeline, title=f"Train {stock_name}")
+    # val_profit, timeline = trainer.testing(train_data)
+    # data_frame = make_dataframe(train_stock_name)
+    # make_plot(data_frame, timeline, title=train_stock_name)
 
 
 if __name__ == "__main__":
@@ -115,4 +113,3 @@ if __name__ == "__main__":
              pretrained=args.pretrained, debug=args.debug)
     except KeyboardInterrupt:
         print("Aborted!")
-

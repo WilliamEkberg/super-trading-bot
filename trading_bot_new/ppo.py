@@ -35,7 +35,7 @@ def generate_toy_stock_data(n_days=1000, volatility=0.01, trend=0.0005, seed=42)
     #     'price': prices
     # })
 
-    df = pd.read_csv("../data/GOOG.csv")
+    df = pd.read_csv("../data/google/combined_test_data.csv")
 
     # Add some technical indicators
     # Simple Moving Average (SMA)

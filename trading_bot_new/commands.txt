@@ -1,4 +1,10 @@
-python run.py --data_dir ../data --train_stock_name GOOG.csv --val_stock_name GOOG_2018.csv --strategy t-dqn --model_name test
+python run.py --data_dir ../data --stock_name novotech --strategy t-dqn --model_name test
 
-python run_with_transformer.py --data_dir ../data --train_stock_name GOOG.csv --val_stock_name GOOG_2018.csv --strategy t-dqn --model_name test
+python run_with_transformer.py --data_dir ../data --stock_name first_north --strategy t-dqn --model_name test
+
+python run_old.py --data_dir ../data/novotech --train_stock_name combined_train_data.csv --val_stock_name combined_test_data.csv --strategy t-dqn --model_name test
+
+python run_old.py --data_dir ../data --stock_name google --strategy t-dqn --model_name test
+
+python run_old.py --data_dir ../data --stock_name novotech --strategy t-dqn --model_name test
     
