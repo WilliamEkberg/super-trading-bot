@@ -3,14 +3,15 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
 
-class Trainer():
-    def __init__(self, dataloader_train, dataloader_val, trader, batch_size=32, obs_window=10):
+class Trainer_InSteps():
+    def __init__(self, dataloader_train, dataloader_val, trader, batch_size=32, obs_window=10, mdp=""):
         self.total_profit = 0
         self.train_profit = 0
         self.batch_size = batch_size
         self.obs_window = obs_window
         self.trader = trader
-
+        if mdp != "10%_steps": raise ValueError("Wow, the mdp doesn't work with 10'%'steps")
+        self.mdp = mdp
     
     def go_to_gym(self, number_of_episodes, dataset):
         self.number_episodes = number_of_episodes

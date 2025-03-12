@@ -4,7 +4,7 @@ from dataset.Dataset import TradingDataset_V2, TradingDataset
 from utils.utils import show_train_result, get_device, show_eval_result, make_plot, make_dataframe
 
 from agent import Agent
-from train import Trainer
+from train import Trainer #modify for steps!!!
 from transformer_model import Transformer
 
 def get_args():
