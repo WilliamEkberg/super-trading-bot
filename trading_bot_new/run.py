@@ -32,7 +32,8 @@ from utils.utils import show_train_result, get_device, show_eval_result, make_pl
 import pandas as pd
 
 from agent import Agent
-from train import Trainer #modify for steps!!!!!
+from train import Trainer #other methods
+from train_smaller_steps import Trainer_InSteps #"small_steps"
 
 def get_args():
     parser = argparse.ArgumentParser(description="Stock Trading Bot Training")
@@ -50,7 +51,7 @@ def get_args():
                         help="Batch size for training")
     parser.add_argument("--lr", type=float, default=1e-3,
                         help="Learning Rate")
-    parser.add_argument("--episodes", type=int, default=7,
+    parser.add_argument("--episodes", type=int, default=7, #different methods need different periods!!!!!!!
                         help="Number of training episodes")
     parser.add_argument("--model_name", type=str, default="model_debug",
                         help="Name of the model for saving/loading")
@@ -61,15 +62,50 @@ def get_args():
     return parser.parse_args()
 
 
+def main(train_stock_name, val_stock_name, mdp, strategy):
+    train_stock_name = train_stock_name
+    val_stock_name = val_stock_name
+    mdp = mdp #"10%_steps", "all_10%_steps", "all_or_nothing"
+    strategy = strategy #"Transformer", "t-dqn", "double-dqn"
 
-def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep_count,
-         strategy="t-dqn", model_name="model_debug", pretrained=False, debug=False):
+    #hyperparameters:
+    ep_count = 0 #This might need to change
+    if strategy == "Transformer":
+      ep_count = 2 
+    elif strategy == "t-dqn":
+      if mdp == "10%_steps":
+        ep_count = 2 
+      if mdp == "all_10%_steps":
+        ep_count = 2 
+      if mdp == "all_or_nothing":
+        ep_count = 2  
+    elif strategy == "double-dqn":
+      if mdp == "10%_steps":
+        ep_count = 2 
+      if mdp == "all_10%_steps":
+        ep_count = 2 
+      if mdp == "all_or_nothing":
+         ep_count = 2 
+
+    data_dir = "../data" #correct one???
+    window_size = 50
+    batch_size = 32
+    model_name = "test"
+    pretrained = False
+    debug = False
+
+
+    if mdp == "" or strategy == "": raise ValueError("No value for mdp or strategy is given")
+      
     # The state size is window_size - 1 because TradingDataset.get_state returns a tensor of shape (1, window_size-1)
-    state_size = window_size - 1 #+ 1 #+1 if steps
+    if mdp == "10%_steps": state_size = window_size -1 +1
+    elif mdp == "all_10%_steps" or mdp == "all_or_nothing":
+      state_size = window_size - 1
+    else: raise ValueError("Wrong mdp")
 
     # Create the agent with the correct state size and device.
     agent = Agent(state_size, args.lr, strategy=strategy, pretrained=pretrained,
-                  model_name=model_name, device=get_device())
+                  model_name=model_name, device=get_device(), mdp=mdp)
     
     # Load the training and validation datasets.
     train_data = TradingDataset(data_dir, train_stock_name, window_size)
@@ -85,8 +121,10 @@ def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep
     dataloader_val = DataLoader(val_data, batch_size=1, shuffle=False)
     
     # Create the Trainer instance.
-    trainer = Trainer(dataloader_train, dataloader_val, agent, batch_size, window_size)
-    
+    if mdp == "10%_steps": trainer = Trainer_InSteps(dataloader_train, dataloader_val, agent, batch_size, window_size, mdp=mdp)
+    elif mdp == "all_10%_steps" or mdp == "all_or_nothing":  
+       trainer = Trainer(dataloader_train, dataloader_val, agent, batch_size, window_size, mdp=mdp)
+    else: raise ValueError("Wrong mdp")
     # Run training over the specified episodes.
     # go_to_gym expects an iterable of episodes and a dataset.
     trainer.go_to_gym(range(1, ep_count + 1), train_data)
@@ -99,6 +137,7 @@ def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep
     show_train_result(train_result, val_profit, initial_offset)
 
     data_frame = make_dataframe(val_stock_name)
+    return timeline, data_frame
     make_plot(data_frame, timeline, title=val_stock_name)
 
     val_profit, timeline = trainer.testing(train_data)
@@ -107,12 +146,38 @@ def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep
 
 
 if __name__ == "__main__":
+    #from the parser:
     args = get_args()
+
+    data_dir = args.data_dir 
+    train_stock_name = args.train_stock_name
+    val_stock_name = args.val_stock_name
+    window_size = args.window_size
+    batch_size = args.batch_size
+    ep_count = args.episodes
+    strategy = args.strategy
+    model_name = args.model_name 
+    pretrained = args.pretrained
+    debug = args.debug
+    mdp = ""
+
+    #Adjustments
+    data_dir = "../data"
+    train_stock_name = "GOOG.csv"
+    val_stock_name = "GOOG_2018.csv"
+    window_size = 50
+    batch_size = 32
+    ep_count = 2 #This might need to change
+    strategy = "double-dqn" #"Transformer", "t-dqn", "double-dqn"
+    model_name = "test"
+    pretrained = False
+    debug = False
+    mdp = "all_or_nothing" #"10%_steps", "all_10%_steps", "all_or_nothing"
+
+
     #coloredlogs.install(level="DEBUG")
     try:
-        main(args.data_dir, args.train_stock_name, args.val_stock_name, args.window_size,
-             args.batch_size, args.episodes, strategy=args.strategy, model_name=args.model_name, 
-             pretrained=args.pretrained, debug=args.debug)
+        main(train_stock_name, val_stock_name, mdp, strategy)
     except KeyboardInterrupt:
         print("Aborted!")
 
