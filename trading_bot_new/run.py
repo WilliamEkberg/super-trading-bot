@@ -90,7 +90,7 @@ def main(stock_name, mdp, strategy):
     model_name = "test"
     pretrained = False
     debug = False
-
+    default_learningrate = 1e-3
 
     if mdp == "" or strategy == "": raise ValueError("No value for mdp or strategy is given")
       
@@ -101,7 +101,7 @@ def main(stock_name, mdp, strategy):
     else: raise ValueError("Wrong mdp")
 
     # Create the agent with the correct state size and device.
-    agent = Agent(state_size, args.lr, strategy=strategy, pretrained=pretrained,
+    agent = Agent(state_size, default_learningrate, strategy=strategy, pretrained=pretrained,
                   model_name=model_name, device=get_device(), mdp=mdp)
     
     # Load the training and validation datasets.
@@ -134,7 +134,7 @@ def main(stock_name, mdp, strategy):
     show_train_result(train_result, val_profit, initial_offset)
 
     data_frame = make_dataframe(os.path.join(data_dir, stock_name, 'combined_test_data.csv'))
-   # return timeline, data_frame
+    return timeline, data_frame
     make_plot(data_frame, timeline, title=f"Test {stock_name}")
 
     val_profit, timeline = trainer.testing(train_data)

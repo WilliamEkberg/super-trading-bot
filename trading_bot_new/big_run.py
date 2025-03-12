@@ -7,21 +7,24 @@ DATASETS = ["FirstNorth.csv", "Novotek.csv"]
 ACTION_SPACES = ["all_or_nothing", "10%_steps", "all_10%_steps"]
 METHODS = ["t-dqn", "double-dqn", "Transformer"]
 
-N_RUNS = 5 
+N_RUNS = 1
+
 
 def run_multiple_times(dataset, action_space, method, n_runs=N_RUNS):
     all_timelines = []
     for run_index in range(n_runs):
         if dataset == "FirstNorth.csv":
             train_dataset = "FirstNorth_2019_2024.csv"
+            stock_name = "first_north"
         else: 
             train_dataset = "Novotek_2019_2024.csv"
+            stock_name = "novotech"
+
 
         timeline, _ = run.main(
-            train_stock_name = train_dataset,
-            val_stock_name= dataset,
-            mdp=action_space,
-            strategy=method,
+            stock_name,
+            action_space,
+            method,
         )
     
         all_timelines.append(timeline)

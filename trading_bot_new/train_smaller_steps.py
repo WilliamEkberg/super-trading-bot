@@ -101,6 +101,7 @@ class Trainer_InSteps():
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
         old_percentage = 0
         for (current_state, next_state, value, done) in dataloader:
+            if len(timeline) == 0: timeline.insert(0, (float(value), 0, 0, 10000, 0, 0))
             profit = 0
 
             current_state = torch.cat((current_state, torch.tensor(old_percentage).view(1,1,-1)), dim=2)#for steps
@@ -143,7 +144,7 @@ class Trainer_InSteps():
                 profit -= np.sum(self.trader.inventory)
                 self.total_profit += len(self.trader.inventory)*value
                 self.total_profit -= np.sum(self.trader.inventory)
-            timeline.append((value, current_action_percentage, profit, Portfolio_value, len(self.trader.inventory), number_buy)) #save for the plot
+            timeline.append((float(value), current_action_percentage, float(profit), float(Portfolio_value), len(self.trader.inventory), number_buy)) #save for the plot
             old_percentage = current_action_percentage
             current_state=next_state
             if done:
