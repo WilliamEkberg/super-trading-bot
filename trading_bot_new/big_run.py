@@ -7,7 +7,7 @@ DATASETS = ["FirstNorth.csv", "Novotek.csv"]
 ACTION_SPACES = ["all_or_nothing", "10%_steps", "all_10%_steps"]
 METHODS = ["t-dqn", "double-dqn", "Transformer"]
 
-N_RUNS = 1
+N_RUNS = 3
 
 
 def run_multiple_times(dataset, action_space, method, n_runs=N_RUNS):
