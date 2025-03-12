@@ -34,6 +34,7 @@ import pandas as pd
 from agent import Agent
 from train import Trainer #other methods
 from train_smaller_steps import Trainer_InSteps #"small_steps"
+import os
 
 def get_args():
     parser = argparse.ArgumentParser(description="Stock Trading Bot Training")
@@ -60,9 +61,7 @@ def get_args():
     return parser.parse_args()
 
 
-def main(train_stock_name, val_stock_name, mdp, strategy):
-    train_stock_name = train_stock_name
-    val_stock_name = val_stock_name
+def main(stock_name, mdp, strategy):
     mdp = mdp #"10%_steps", "all_10%_steps", "all_or_nothing"
     strategy = strategy #"Transformer", "t-dqn", "double-dqn"
 
@@ -96,9 +95,9 @@ def main(train_stock_name, val_stock_name, mdp, strategy):
     if mdp == "" or strategy == "": raise ValueError("No value for mdp or strategy is given")
       
     # The state size is window_size - 1 because TradingDataset.get_state returns a tensor of shape (1, window_size-1)
-    if mdp == "10%_steps": state_size = window_size -1 +1
+    if mdp == "10%_steps": state_size = 2*(window_size -1) +1
     elif mdp == "all_10%_steps" or mdp == "all_or_nothing":
-      state_size = window_size - 1
+      state_size = 2*(window_size - 1)
     else: raise ValueError("Wrong mdp")
 
     # Create the agent with the correct state size and device.
@@ -135,7 +134,7 @@ def main(train_stock_name, val_stock_name, mdp, strategy):
     show_train_result(train_result, val_profit, initial_offset)
 
     data_frame = make_dataframe(os.path.join(data_dir, stock_name, 'combined_test_data.csv'))
-    return timeline, data_frame
+   # return timeline, data_frame
     make_plot(data_frame, timeline, title=f"Test {stock_name}")
 
     val_profit, timeline = trainer.testing(train_data)
@@ -148,8 +147,6 @@ if __name__ == "__main__":
     args = get_args()
 
     data_dir = args.data_dir 
-    train_stock_name = args.train_stock_name
-    val_stock_name = args.val_stock_name
     window_size = args.window_size
     batch_size = args.batch_size
     ep_count = args.episodes
@@ -161,8 +158,7 @@ if __name__ == "__main__":
 
     #Adjustments
     data_dir = "../data"
-    train_stock_name = "GOOG.csv"
-    val_stock_name = "GOOG_2018.csv"
+    stock_name = "novotech"
     window_size = 50
     batch_size = 32
     ep_count = 2 #This might need to change
@@ -170,12 +166,12 @@ if __name__ == "__main__":
     model_name = "test"
     pretrained = False
     debug = False
-    mdp = "all_or_nothing" #"10%_steps", "all_10%_steps", "all_or_nothing"
+    mdp = "10%_steps" #"10%_steps", "all_10%_steps", "all_or_nothing"
 
 
     #coloredlogs.install(level="DEBUG")
     try:
-        main(train_stock_name, val_stock_name, mdp, strategy)
+        main(stock_name, mdp, strategy)
     except KeyboardInterrupt:
         print("Aborted!")
 
