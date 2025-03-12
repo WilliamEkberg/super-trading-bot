@@ -4,8 +4,8 @@ import numpy as np
 import run  
 
 DATASETS = ["FirstNorth.csv", "Novotek.csv"]
-ACTION_SPACES = ["In_or_out", "Ten_action", "Percentage"]
-METHODS = ["DQN", "d_DQN", "Transformer"]
+ACTION_SPACES = ["all_or_nothing", "10%_steps", "all_10%_steps"]
+METHODS = ["t-dqn", "double-dqn", "Transformer"]
 
 N_RUNS = 5 
 
