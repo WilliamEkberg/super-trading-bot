@@ -27,7 +27,7 @@ class Agent:
         self.epsilon = 0.01           # exploration rate #Q-learning: 0.1 (all 10 actions), 0.05 (two actions) Transformer: ??
         self.epsilon_min = 0.1
         self.epsilon_decay = 0.995  #Q-learning: 0.995 (two actions), 0.9999 (all 10 actions) Transformer: ??
-        self.learning_rate = 1e-6 #Q-learning: 0.0001 (1e-4) #transformer: ??
+        self.learning_rate = lr #Q-learning: 0.0001 (1e-4) #transformer: ??
         
        
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")

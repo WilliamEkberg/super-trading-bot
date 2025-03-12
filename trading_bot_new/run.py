@@ -27,7 +27,7 @@ import coloredlogs
 import argparse
 from docopt import docopt
 from torch.utils.data import DataLoader
-from dataset.Dataset import TradingDataset
+from dataset.Dataset import TradingDataset, TradingDataset_V3
 from utils.utils import show_train_result, get_device, show_eval_result, make_plot, make_dataframe
 import pandas as pd
 
@@ -44,7 +44,7 @@ def get_args():
                         help="Name of the validation stock data file (e.g. GOOG_2018.csv)")
     parser.add_argument("--strategy", type=str, default="t-dqn",
                         help="Training strategy: dqn, t-dqn, or double-dqn")
-    parser.add_argument("--window_size", type=int, default=50,
+    parser.add_argument("--window_size", type=int, default=20,
                         help="Window size for the n-day state representation")
     parser.add_argument("--batch_size", type=int, default=32,
                         help="Batch size for training")
@@ -65,7 +65,8 @@ def get_args():
 def main(data_dir, train_stock_name, val_stock_name, window_size, batch_size, ep_count,
          strategy="t-dqn", model_name="model_debug", pretrained=False, debug=False):
     # The state size is window_size - 1 because TradingDataset.get_state returns a tensor of shape (1, window_size-1)
-    state_size = window_size - 1
+    #state_size = window_size - 1
+    state_size = 156
 
     # Create the agent with the correct state size and device.
     agent = Agent(state_size, args.lr, strategy=strategy, pretrained=pretrained,

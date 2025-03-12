@@ -21,7 +21,7 @@ def get_args():
                         help="Batch size for training")
     parser.add_argument("--episodes", type=int, default=5,
                         help="Number of training episodes")
-    parser.add_argument("--lr", type=float, default=1e-5,
+    parser.add_argument("--lr", type=float, default=1e-6,
                         help="Learning Rate")
     parser.add_argument("--model_name", type=str, default="model_debug",
                         help="Name of the model for saving/loading")
