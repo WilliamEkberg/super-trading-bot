@@ -71,6 +71,38 @@ def get_device():
     logging.debug("Using device: {}".format(device))
     return device
 
+def make_plot_upper(df, history, title="Trading on GOOG stock in 2018"):
+    if isinstance(history, torch.Tensor):
+        history = history.tolist()
+
+    # Ensure history length matches df
+    if len(history) != len(df):
+        raise ValueError("Length of history does not match length of DataFrame")
+
+    # Extract stock positions
+    df['position'] = [x[0] for x in history]
+
+    # Identify buy/sell actions
+    buy_signals = df[df['position'] > df['position'].shift(1)]  # Buy when position increases
+    sell_signals = df[df['position'] < df['position'].shift(1)]  # Sell when position decreases
+
+    # Create a single plot
+    fig, ax = plt.subplots(figsize=(12, 5))  # Adjusted figure size for a single plot
+
+    # Plot stock positions
+    ax.plot(df['date'], df['position'], label='Stock Position', color='green', alpha=0.7)
+    #ax.scatter(buy_signals['date'], buy_signals['position'], color='blue', label='Buy', marker='^', alpha=0.8)
+    #ax.scatter(sell_signals['date'], sell_signals['position'], color='red', label='Sell', marker='v', alpha=0.8)
+    ax.set(title="Novotek", ylabel="Stock Price")
+    ax.legend()
+    ax.grid(True, linestyle='--', alpha=0.6)
+
+    # Formatting x-axis
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
 def make_plot(df, history, title="Trading on googl stock in 2018"):
     if isinstance(history, torch.Tensor):
         history = history.tolist()

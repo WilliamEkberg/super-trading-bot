@@ -112,7 +112,7 @@ class TradingDataset_V2(Dataset):
 
     def __getitem__(self, idx):
         done = False
-        if idx == (self.__len__()):
+        if idx == (self.__len__()-1):
             done = True
         
         d = idx - self.window_size
@@ -229,7 +229,7 @@ class TradingDataset_V3(Dataset):
 
     def __getitem__(self, idx):
         done = False
-        if idx == (self.__len__()):
+        if idx == (self.__len__()-1):
             done = True
         
         x = self.get_observation(t=idx)

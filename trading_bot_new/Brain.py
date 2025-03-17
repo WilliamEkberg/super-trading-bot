@@ -1,12 +1,14 @@
 import torch
+torch.manual_seed(0)
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+np.random.seed(42)
 from transformer_model import Transformer
 from einops import rearrange, repeat
 
 class brain(nn.Module):
-    def __init__(self, state_size, action_size, hidden_dim=128, hidden_dim_start_and_end = 128):
+    def __init__(self, state_size, action_size, hidden_dim=40, hidden_dim_start_and_end = 40):
         super(brain, self).__init__()
         self.layer_norm_input = nn.LayerNorm(state_size)
         self.layer_norm = nn.LayerNorm(hidden_dim)

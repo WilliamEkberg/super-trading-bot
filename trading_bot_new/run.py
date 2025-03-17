@@ -28,7 +28,7 @@ import argparse
 from docopt import docopt
 from torch.utils.data import DataLoader
 from dataset.Dataset import TradingDataset, TradingDataset_V3
-from utils.utils import show_train_result, get_device, show_eval_result, make_plot, make_dataframe
+from utils.utils import show_train_result, get_device, show_eval_result, make_plot, make_dataframe, make_plot_upper
 import pandas as pd
 
 from agent import Agent
@@ -68,24 +68,24 @@ def main(stock_name, mdp, strategy):
     #hyperparameters:
     ep_count = 0 #This might need to change
     if strategy == "Transformer":
-      ep_count = 2 
+      ep_count = 3 
     elif strategy == "t-dqn":
       if mdp == "10%_steps":
-        ep_count = 2 
+        ep_count = 7 
       if mdp == "all_10%_steps":
-        ep_count = 2 
+        ep_count = 7 
       if mdp == "all_or_nothing":
-        ep_count = 2  
+        ep_count = 7  
     elif strategy == "double-dqn":
       if mdp == "10%_steps":
-        ep_count = 2 
+        ep_count = 5 
       if mdp == "all_10%_steps":
-        ep_count = 2 
+        ep_count = 7 
       if mdp == "all_or_nothing":
-         ep_count = 2 
+         ep_count = 7
 
     data_dir = "../data" #correct one???
-    window_size = 50
+    window_size = 20
     batch_size = 32
     model_name = "test"
     pretrained = False
@@ -134,7 +134,7 @@ def main(stock_name, mdp, strategy):
     show_train_result(train_result, val_profit, initial_offset)
 
     data_frame = make_dataframe(os.path.join(data_dir, stock_name, 'combined_test_data.csv'))
-    return timeline, data_frame
+    #return timeline, data_frame
     make_plot(data_frame, timeline, title=f"Test {stock_name}")
 
     val_profit, timeline = trainer.testing(train_data)
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
     #Adjustments
     data_dir = "../data"
-    stock_name = "novotech"
+    stock_name = "novotech" #first_north
     window_size = 50
     batch_size = 32
     ep_count = 2 #This might need to change
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     model_name = "test"
     pretrained = False
     debug = False
-    mdp = "10%_steps" #"10%_steps", "all_10%_steps", "all_or_nothing"
+    mdp = "all_or_nothing" #"10%_steps", "all_10%_steps", "all_or_nothing"
 
 
     #coloredlogs.install(level="DEBUG")
