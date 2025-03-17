@@ -7,7 +7,7 @@ DATASETS = ["FirstNorth.csv", "Novotek.csv"]
 ACTION_SPACES = ["all_or_nothing", "10%_steps", "all_10%_steps"]
 METHODS = ["t-dqn", "double-dqn", "Transformer"]
 
-N_RUNS = 3
+N_RUNS = 10
 
 
 def run_multiple_times(dataset, action_space, method, n_runs=N_RUNS):
@@ -35,21 +35,27 @@ def get_daily_profit_from_timeline(timeline):
     daily_profits = [day[3] for day in timeline]  # If 'profit' is day[2]
     return np.array(daily_profits, dtype=np.float32)
 
+def get_buy_and_hold_from_timeline(timeline, initial_value=10000):
+    closing_prices = [day[0] for day in timeline]
+    shares = initial_value / closing_prices[0]
+    return shares * np.array(closing_prices)
+
 def plot_all_results():
     """
-    6 figeures
+    3 figeures
     2 datasets x 3 Action Spaces => 6 combos
     Each figure has 3 subplots (METHODS)
     every subplot has mean daly profit (+- std) over all N runs
     """
+    colors = ['blue', 'green', 'red']
     for dataset in DATASETS:
         for action_space in ACTION_SPACES:
-            fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
-            
+            #fig, ax = plt.subplots(figsize=(15, 5))
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10), sharex=True)
             fig.suptitle(f"Dataset: {dataset} | Action Space: {action_space}")
+                
 
-            for col_idx, method in enumerate(METHODS):
-                ax = axes[col_idx]
+            for idx, method in enumerate(METHODS):
                 
                 all_timelines = run_multiple_times(dataset, action_space, method, N_RUNS)
                 
@@ -69,26 +75,64 @@ def plot_all_results():
                 
                 T = len(mean_profit)
                 x_axis = np.arange(T)
-                ax.plot(x_axis, mean_profit, label=f"{method} (mean)")
-                ax.fill_between(
+                ax1.plot(x_axis, mean_profit, color=colors[idx], label=f"{method} (mean)")
+                # pc = ax1.fill_between(
+                #     x_axis,
+                #     mean_profit - std_profit,
+                #     mean_profit + std_profit,
+                #     alpha=0.2,
+                #     edgecolor=colors[idx],
+                #     linewidth=2,
+                #     facecolor=colors[idx],
+
+                #)
+                #pc.set_linestyle(':') 
+                
+                x_offset = 0.98 - idx * 0.3
+                ax1.text(x_offset , 0.1, 
+                        f'{method}: ROI {np.mean(rois):.2f}\nSortino {np.mean(s_ratio):.2f}', 
+                        fontsize=12, 
+                        color=colors[idx],
+                        ha='right', 
+                        va='top', 
+                        transform=ax1.transAxes,
+                        clip_on=False)
+                
+                ax2.plot(x_axis, std_profit, color=colors[idx], label=f"{method} Standard Deviation")
+                pc2 = ax2.fill_between(
                     x_axis,
-                    mean_profit - std_profit,
-                    mean_profit + std_profit,
-                    alpha=0.2
+                    0,
+                    std_profit,
+                    alpha=0.2,
+                    facecolor=colors[idx],
+                    edgecolor=colors[idx],
+                    linewidth=2,
                 )
-                
-                ax.text(1, 0, f'ROI: {np.mean(rois):.2f} \nSortino: {np.mean(s_ratio):.2f}',
-                fontsize=12, ha='right', va='bottom', transform=ax.transAxes)
-                
-                ax.set_title(method)
-                ax.set_xlabel("Day")
-                ax.set_ylabel("Profit")
-                ax.grid(True)
-                ax.legend()
+                pc2.set_linestyle(':')
+
+
+                #ax.text(1, 0, f'ROI: {np.mean(rois):.2f} \nSortino: {np.mean(s_ratio):.2f}',
+                #fontsize=12, ha='right', va='bottom', transform=ax.transAxes)
+
+            hold_profit = get_buy_and_hold_from_timeline(all_timelines[0], initial_value=10000)
+            ax1.plot(x_axis, hold_profit, color='black', label=f"Buy and hold", linestyle='--', linewidth=3)
+
+            ax1.set_title("Portfolio Value")
+            ax1.set_ylabel("Portfolio Value")
+            ax1.grid(True)
+            ax1.legend()
+
+            ax2.set_title("Standard Deviation Between Runs")
+            ax2.set_xlabel("Day")
+            ax2.set_ylabel("Standard Deviation")
+            ax2.grid(True)
+            ax2.legend()
             
             plt.tight_layout()
             plt.savefig(f"{dataset}_{action_space}_profit.png")
-            plt.show()
+            plt.savefig(f"{dataset}_{action_space}_{method}_profit.png")
+            #plt.show()
+            plt.close()
 
 def sortino_ratio(portfolio_values, risk_free_rate=0, target_return=0, periods_per_year=252):
     portfolio_values = np.array(portfolio_values)

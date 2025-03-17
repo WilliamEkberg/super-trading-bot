@@ -68,21 +68,21 @@ def main(stock_name, mdp, strategy):
     #hyperparameters:
     ep_count = 0 #This might need to change
     if strategy == "Transformer":
-      ep_count = 2 
+      ep_count = 3 
     elif strategy == "t-dqn":
       if mdp == "10%_steps":
-        ep_count = 2 
+        ep_count = 6 
       if mdp == "all_10%_steps":
-        ep_count = 2 
+        ep_count = 6
       if mdp == "all_or_nothing":
-        ep_count = 2  
+        ep_count = 6
     elif strategy == "double-dqn":
       if mdp == "10%_steps":
-        ep_count = 2 
+        ep_count = 6
       if mdp == "all_10%_steps":
-        ep_count = 2 
+        ep_count = 6
       if mdp == "all_or_nothing":
-         ep_count = 2 
+         ep_count = 6
 
     data_dir = "../data" #correct one???
     window_size = 50
