@@ -134,12 +134,12 @@ def main(stock_name, mdp, strategy):
     show_train_result(train_result, val_profit, initial_offset)
 
     data_frame = make_dataframe(os.path.join(data_dir, stock_name, 'combined_test_data.csv'))
-    #return timeline, data_frame
-    make_plot(data_frame, timeline, title=f"Test {stock_name}")
+    return timeline, data_frame
+    #make_plot(data_frame, timeline, title=f"Test {stock_name}")
 
-    val_profit, timeline = trainer.testing(train_data)
-    data_frame = make_dataframe(os.path.join(data_dir, stock_name, 'combined_train_data.csv'))
-    make_plot(data_frame, timeline, title=f"Train {stock_name}")
+    #val_profit, timeline = trainer.testing(train_data)
+    #data_frame = make_dataframe(os.path.join(data_dir, stock_name, 'combined_train_data.csv'))
+    #make_plot(data_frame, timeline, title=f"Train {stock_name}")
 
 
 if __name__ == "__main__":

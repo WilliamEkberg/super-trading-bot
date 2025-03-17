@@ -1,5 +1,5 @@
 import torch
-torch.manual_seed(0)
+#torch.manual_seed(0)
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
