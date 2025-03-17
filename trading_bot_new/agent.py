@@ -1,4 +1,5 @@
 import random
+random.seed(0)
 from collections import deque
 import os
 import numpy as np
@@ -32,16 +33,26 @@ class Agent:
                 self.gamma = 0.95             # discount factor
                 self.epsilon = 1           # exploration rate #Q-learning: 0.1 (all 10 actions), 0.05 (two actions) Transformer: ??
                 self.epsilon_min = 0.2
+                self.epsilon = 1           # exploration rate #Q-learning: 0.1 (all 10 actions), 0.05 (two actions) Transformer: ??
+                self.epsilon_min = 0.2
                 self.epsilon_decay = 0.9995  #Q-learning: 0.995 (two actions), 0.9999 (all 10 actions) Transformer: ??
+                self.learning_rate = 1e-6 #Q-learning: 0.0001 (1e-4) #transformer: lr
                 self.learning_rate = 1e-6 #Q-learning: 0.0001 (1e-4) #transformer: lr
             elif mdp == "all_or_nothing":
                 self.gamma = 0.95             
                 self.epsilon = 1          
                 self.epsilon_min = 0.05
+                self.epsilon = 1          
+                self.epsilon_min = 0.05
                 self.epsilon_decay = 0.995 
+                self.learning_rate = 1e-6 
                 self.learning_rate = 1e-6 
             if mdp == "all_10%_steps":
                 self.gamma = 0.95             
+                self.epsilon = 1         
+                self.epsilon_min = 0.2
+                self.epsilon_decay = 0.9995  
+                self.learning_rate = 1e-6 
                 self.epsilon = 1         
                 self.epsilon_min = 0.2
                 self.epsilon_decay = 0.9995  
@@ -53,7 +64,10 @@ class Agent:
                 self.gamma = 0.95            
                 self.epsilon = 0.5          
                 self.epsilon_min = 0.05
+                self.epsilon = 0.5          
+                self.epsilon_min = 0.05
                 self.epsilon_decay = 0.9995  
+                self.learning_rate = lr
                 self.learning_rate = lr
             elif mdp == "all_or_nothing":
                 self.gamma = 0.95             
@@ -61,12 +75,19 @@ class Agent:
                 self.epsilon_min = 0.05
                 self.epsilon_decay = 0.995  
                 self.learning_rate = 0.00001
+                self.epsilon = 0.5           
+                self.epsilon_min = 0.05
+                self.epsilon_decay = 0.995  
+                self.learning_rate = 0.0001
             if mdp == "all_10%_steps":
                 self.gamma = 0.95            
+                self.epsilon = 0.8          
                 self.epsilon = 0.8          
                 self.epsilon_min = 0.1
                 self.epsilon_decay = 0.995
                 self.learning_rate = 0.00001
+                self.epsilon_decay = 0.995
+                self.learning_rate = 0.001
         else: raise ValueError("No appropriate strategy given")
 
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -99,8 +99,12 @@ class Trainer_InSteps():
         timeline = []
 
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
+        old_value = None
         old_percentage = 0
         for (current_state, next_state, value, done) in dataloader:
+            if old_value == None: old_value=value
+            change = len(self.trader.inventory)*(value-old_value)
+            change = np.tanh(change/40)
             if len(timeline) == 0: timeline.insert(0, (float(value), 0, 0, 10000, 0, 0))
             profit = 0
 
@@ -138,7 +142,7 @@ class Trainer_InSteps():
                 self.total_profit += profit
                 self.money += value*number_sell
 
-            self.trader.remember(current_state, current_action, profit, next_state, done)
+            self.trader.remember(current_state, current_action, change, next_state, done)
             if done:
                 profit += len(self.trader.inventory)*value
                 profit -= np.sum(self.trader.inventory)
@@ -146,7 +150,8 @@ class Trainer_InSteps():
                 self.total_profit -= np.sum(self.trader.inventory)
             timeline.append((float(value), current_action_percentage, float(profit), float(Portfolio_value), len(self.trader.inventory), number_buy)) #save for the plot
             old_percentage = current_action_percentage
-            current_state=next_state
+            current_state = next_state
+            old_value=value
             if done:
                 break
         print(f'Validation: self.total_profit: {self.total_profit}')

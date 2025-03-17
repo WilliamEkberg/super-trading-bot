@@ -1,7 +1,9 @@
 import torch
+torch.manual_seed(0)
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+np.random.seed(42)
 from transformer_model import Transformer
 from einops import rearrange, repeat
 

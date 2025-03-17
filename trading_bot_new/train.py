@@ -32,6 +32,7 @@ class Trainer():
             change = len(self.trader.inventory)*(value-old_value)
             current_action = self.trader.act(current_state)
 
+
             if self.mdp == "all_or_nothing":
                 current_action_percentage = current_action
                 change = np.tan(change/150)
@@ -86,16 +87,22 @@ class Trainer():
         timeline = []
 
         dataloader = DataLoader(dataset, batch_size = 1, shuffle=False)
+        old_value = None
         for (current_state, next_state, value, done) in dataloader:
+            if old_value == None: old_value=value
             if len(timeline) == 0: timeline.insert(0, (float(value), 0, 0, 10000, 0, 0))
             profit = 0
-
+            change = len(self.trader.inventory)*(value-old_value)
             current_action = self.trader.act(current_state, is_eval=True)
+
             #print(current_action)
             if self.mdp == "all_or_nothing":
                 current_action_percentage = current_action
+                change = np.tan(change/150)
             elif self.mdp == "all_10%_steps":
                 current_action_percentage = current_action/10
+                change = -np.exp(-change/150) + 1
+                change = np.tanh(change*2)
             else: raise ValueError("Wow, this is the wrong file!")
 
             total_shares_value = len(self.trader.inventory)*value
@@ -120,14 +127,16 @@ class Trainer():
                 self.total_profit += profit
                 self.money += value*number_sell
 
-            self.trader.remember(current_state, current_action, profit, next_state, done)
+            self.trader.remember(current_state, current_action, change, next_state, done)
             if done:
                 profit += len(self.trader.inventory)*value
                 profit -= np.sum(self.trader.inventory)
                 self.total_profit += len(self.trader.inventory)*value
                 self.total_profit -= np.sum(self.trader.inventory)
+
             timeline.append((float(value), current_action_percentage, float(profit), float(Portfolio_value), len(self.trader.inventory), number_buy)) #save for the plot
             current_state=next_state
+            old_value = value
             if done:
                 break
         print(f'Validation: self.total_profit: {self.total_profit}')
