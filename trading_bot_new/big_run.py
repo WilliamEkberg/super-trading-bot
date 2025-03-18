@@ -4,7 +4,7 @@ import numpy as np
 import run  
 
 DATASETS = ["FirstNorth.csv", "Novotek.csv"]
-ACTION_SPACES = ["all_or_nothing", "10%_steps", "all_10%_steps"]
+ACTION_SPACES = ["all_or_nothing", "10%_steps", "all_10%_steps"] # Binary market participation, Incremental adjustment, Discrete allocation levels
 METHODS = ["t-dqn", "double-dqn", "Transformer"]
 
 N_RUNS = 5
