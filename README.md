@@ -1,75 +1,43 @@
-# Overview
+Market Interaction with DQN, Double DQN, and Transformer-based DQN
 
-This project implements a Stock Trading Bot, trained using Deep Reinforcement Learning, specifically Deep Q-learning. Implementation is kept simple and as close as possible to the algorithm discussed in the paper, for learning purposes.
+Welcome to our project! This repository demonstrates various deep reinforcement learning (RL) methods applied to interact with market data. Specifically, we utilize *DQN, **Double DQN, and a **Transformer-based DQN* approach to model and predict optimal trading actions in a dynamic market environment.
 
-## Introduction
+Project Structure
 
-Generally, Reinforcement Learning is a family of machine learning techniques that allow us to create intelligent agents that learn from the environment by interacting with it, as they learn an optimal policy by trial and error. This is especially useful in many real world tasks where supervised learning might not be the best approach due to various reasons like nature of task itself, lack of appropriate labelled data, etc.
+•⁠  ⁠data/: Contains market data used to train the models. The data is structured to simulate real market conditions for testing our RL algorithms.
+  
+•⁠  ⁠Brain.py: Contains the definition of the neural networks used in all three models (DQN, Double DQN, and Transformer-based DQN). This is where the architectures are designed.
 
-The important idea here is that this technique can be applied to any real world task that can be described loosely as a Markovian process.
+•⁠  ⁠train.py: The main training script environments of "Discrete Allocation Levels" and "Binary Market Participation"
 
-## Approach
+•⁠  ⁠train_smaller_steps.py: The training file for the "Increment Adjustments" action space
 
-This work uses a Model-free Reinforcement Learning technique called Deep Q-Learning (neural variant of Q-Learning).
-At any given time (episode), an agent abserves it's current state (n-day window stock price representation), selects and performs an action (buy/sell/hold), observes a subsequent state, receives some reward signal (difference in portfolio position) and lastly adjusts it's parameters based on the gradient of the loss computed.
+•⁠  ⁠big_run.py: This is the central script to run the entire project. It orchestrates the execution of the different models and simulates the market interactions.
 
-There have been several improvements to the Q-learning algorithm over the years, and a few have been implemented in this project:
+•⁠  ⁠Run.py: A more focused script to execute a single run of a specific method (DQN or Double DQN). It's useful for testing one model at a time.
 
-- [x] Vanilla DQN
-- [x] DQN with fixed target distribution
-- [x] Double DQN
-- [ ] Prioritized Experience Replay
-- [ ] Dueling Network Architectures
+•⁠  ⁠run_with_transformer.py: This script is used to execute a single run with the Transformer-based DQN method. It focuses on running the transformer variant only.
 
-## Results
+•⁠  ⁠commands.txt: This file contains the necessary commands to execute the scripts. It provides the options and configurations to customize your run.
 
-Trained on `GOOG` 2010-17 stock data, tested on 2019 with a profit of $1141.45 (validated on 2018 with profit of $863.41):
+How to Run
 
-![Google Stock Trading episode](./extra/visualization.png)
+To get started, simply follow the steps below:
 
-You can obtain similar visualizations of your model evaluations using the [notebook](./visualize.ipynb) provided.
+1.⁠ ⁠Prepare the Environment: Ensure you have all necessary dependencies installed (likely from a requirements.txt or environment file).
+2.⁠ ⁠Run the Project:
+   - To run the full experiment, use big_run.py which handles all models.
+   - To test a single model, use Run.py (for DQN or Double DQN) or run_with_transformer.py (for Transformer-based DQN).
+   - The commands.txt file contains the exact command-line arguments required to run the scripts.
 
-## Some Caveats
+Quick Overview of Methods
 
-- At any given state, the agent can only decide to buy/sell one stock at a time. This is done to keep things as simple as possible as the problem of deciding how much stock to buy/sell is one of portfolio redistribution.
-- The n-day window feature representation is a vector of subsequent differences in Adjusted Closing price of the stock we're trading followed by a sigmoid operation, done in order to normalize the values to the range [0, 1].
-- Training is prefferably done on CPU due to it's sequential manner, after each episode of trading we replay the experience (1 epoch over a small minibatch) and update model parameters.
+•⁠  ⁠DQN (Deep Q-Network): Standard Q-learning with deep neural networks to approximate the Q-values.
+  
+•⁠  ⁠Double DQN: An improvement over DQN that helps reduce overestimation of Q-values, improving stability and performance.
 
-## Data
+•⁠  ⁠Transformer-based DQN: An advanced method using transformer networks to better capture long-term dependencies in the market data for more accurate decision-making.
 
-You can download Historical Financial data from [Yahoo! Finance](https://ca.finance.yahoo.com/) for training, or even use some sample datasets already present under `data/`.
+We hope you find the project insightful, and feel free to explore or modify it as per your requirements.
 
-## Getting Started
-
-In order to use this project, you'll need to install the required python packages:
-
-```bash
-pip3 install -r requirements.txt
-```
-
-Now you can open up a terminal and start training the agent:
-
-```bash
-python3 train.py data/GOOG.csv data/GOOG_2018.csv --strategy t-dqn
-```
-
-Once you're done training, run the evaluation script and let the agent make trading decisions:
-
-```bash
-python3 eval.py data/GOOG_2019.csv --model-name model_GOOG_50 --debug
-```
-
-Now you are all set up!
-
-## Acknowledgements
-
-- [@keon](https://github.com/keon) for [deep-q-learning](https://github.com/keon/deep-q-learning)
-- [@edwardhdlu](https://github.com/edwardhdlu) for [q-trader](https://github.com/edwardhdlu/q-trader)
-
-## References
-
-- [Playing Atari with Deep Reinforcement Learning](https://arxiv.org/abs/1312.5602)
-- [Human Level Control Through Deep Reinforcement Learning](https://deepmind.com/research/publications/human-level-control-through-deep-reinforcement-learning/)
-- [Deep Reinforcement Learning with Double Q-Learning](https://arxiv.org/abs/1509.06461)
-- [Prioritized Experience Replay](https://arxiv.org/abs/1511.05952)
-- [Dueling Network Architectures for Deep Reinforcement Learning](https://arxiv.org/abs/1511.06581)
+Happy experimenting! 😄
